@@ -166,12 +166,13 @@ function brokenblock(ids)
 		local realbroken = unit.broken
 		unit.broken = 0
 		local broken = hasfeature(name,"is","broken",unit.fixed)
+		local fixed = hasfeature(name,"is","fixed",unit.fixed)
 		unit.broken = realbroken
 		
-		if (broken ~= nil) and (unit.broken == 0) then
+		if (broken ~= nil) and (fixed == nil) and (unit.broken == 0) then
 			unit.broken = 1
 			addundo({"broken",1,unit.values[ID],unit.strings[UNITNAME]})
-		elseif (broken == nil) and (unit.broken == 1) then
+		elseif ((broken == nil) or fixed ~= nil) and (unit.broken == 1) then
 			unit.broken = 0
 			addundo({"broken",0,unit.values[ID],unit.strings[UNITNAME]})
 		end
@@ -291,10 +292,14 @@ function statusblock(ids,undoing_,noturn_)
 					end
 					
 					--MF_alert(tostring(currdir) .. ", " .. tostring(fdir))
-				
+					
 					if (fdir ~= currdir) then
-						updatedir(unit.fixed,fdir)
-						currdir = fdir
+						local horiz = hasfeature(name,"is","horiz",unit.fixed)
+						local vert = hasfeature(name,"is","vert",unit.fixed)
+						if((horiz == nil) and (vert == nil)) or ((horiz ~= nil) and (vert == nil) and ((fdir == 0) or (fdir == 2))) or ((horiz == nil) and (vert ~= nil) and ((fdir == 1) or (fdir == 3))) then
+							updatedir(unit.fixed,fdir)
+							currdir = fdir
+						end
 					end
 				end
 				
@@ -329,12 +334,18 @@ function statusblock(ids,undoing_,noturn_)
 						turns = 0
 					end
 					
+					local horiz = hasfeature(name,"is","horiz",unit.fixed)
+					local vert = hasfeature(name,"is","vert",unit.fixed)
+					
 					if (turns > 0) then
 						for d=1,turns do
 							currdir = ((currdir + 4) - 1) % 4
 						end
 						
-						updatedir(unit.fixed,currdir)
+
+						if((horiz == nil) and (vert == nil)) or ((horiz ~= nil) and (vert == nil) and ((currdir == 0) or (currdir == 2))) or ((horiz == nil) and (vert ~= nil) and ((currdir == 1) or (currdir == 3))) then
+							updatedir(unit.fixed,currdir)
+						end
 					end
 					
 					if (deturns > 0) then
@@ -342,7 +353,9 @@ function statusblock(ids,undoing_,noturn_)
 							currdir = ((currdir + 4) + 1) % 4
 						end
 						
-						updatedir(unit.fixed,currdir)
+						if((horiz == nil) and (vert == nil)) or ((horiz ~= nil) and (vert == nil) and ((currdir == 0) or (currdir == 2))) or ((horiz == nil) and (vert ~= nil) and ((currdir == 1) or (currdir == 3))) then
+							updatedir(unit.fixed,currdir)
+						end
 					end
 				end
 			end
@@ -565,7 +578,11 @@ function moveblock(onlystartblock_)
 			
 							if (targetdir >= 0) then
 								--MF_alert(unit.strings[UNITNAME] .. " faces to " .. tostring(targetdir))
-								updatedir(unit.fixed,targetdir,onlystartblock)
+								local horiz = hasfeature(name,"is","horiz",unit.fixed)
+								local vert = hasfeature(name,"is","vert",unit.fixed)
+								if((horiz == nil) and (vert == nil)) or ((horiz ~= nil) and (vert == nil) and ((targetdir == 0) or (targetdir == 2))) or ((horiz == nil) and (vert ~= nil) and ((targetdir == 1) or (targetdir == 3))) then
+									updatedir(unit.fixed,targetdir,onlystartblock)
+								end
 							end
 						end
 					end

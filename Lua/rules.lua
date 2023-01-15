@@ -2436,7 +2436,7 @@ function findwordunits()
 							local valid = true
 							
 							if (featureindex["broken"] ~= nil) then
-								if (hasfeature(getname(bunit),"is","broken",b,bunit.values[XPOS],bunit.values[YPOS]) ~= nil) then
+								if (hasfeature(getname(bunit),"is","broken",b,bunit.values[XPOS],bunit.values[YPOS]) ~= nil) and (hasfeature(getname(bunit),"is","fixed",b,bunit.values[XPOS],bunit.values[YPOS]) == nil) then
 									valid = false
 								end
 							end

@@ -58,7 +58,7 @@ function movecommand(ox,oy,dir_,playerid_,dir_2,no3d_)
 			end
 		end
 		
-		if (featureindex["reverse"] ~= nil) then
+		if (featureindex["reverse"] ~= nil) or (featureindex["reversehoriz"] ~= nil) or (featureindex["reversevert"] ~= nil) then
 			levelmovedir = reversecheck(1,levelmovedir)
 		end
 		
@@ -181,6 +181,8 @@ function movecommand(ox,oy,dir_,playerid_,dir_2,no3d_)
 						local unitname = getname(unit)
 						local sleep = hasfeature(unitname,"is","sleep",v)
 						local still = cantmove(unitname,v,fdir)
+						local horiz = hasfeature(unitname,"is","horiz",v)
+						local vert = hasfeature(unitname,"is","vert",v)
 						
 						if (sleep ~= nil) then
 							sleeping = true
@@ -188,12 +190,16 @@ function movecommand(ox,oy,dir_,playerid_,dir_2,no3d_)
 							sleeping = true
 							
 							if (fdir ~= 4) then
-								updatedir(v, fdir)
+								if((horiz == nil) and (vert == nil)) or ((horiz ~= nil) and (vert == nil) and ((fdir == 0) or (fdir == 2))) or ((horiz == nil) and (vert ~= nil) and ((fdir == 1) or (fdir == 3))) then
+									updatedir(v,fdir)
+								end
 							end
 						else
 							
 							if (fdir ~= 4) then
-								updatedir(v, fdir)
+								if((horiz == nil) and (vert == nil)) or ((horiz ~= nil) and (vert == nil) and ((fdir == 0) or (fdir == 2))) or ((horiz == nil) and (vert ~= nil) and ((fdir == 1) or (fdir == 3))) then
+									updatedir(v,fdir)
+								end
 							end
 						end
 					else
@@ -371,14 +377,20 @@ function movecommand(ox,oy,dir_,playerid_,dir_2,no3d_)
 								local unitname = getname(unit)
 								local sleep = hasfeature(unitname,"is","sleep",uid)
 								local still = cantmove(unitname,uid,feardir)
+								local horiz = hasfeature(unitname,"is","horiz",uid)
+								local vert = hasfeature(unitname,"is","vert",uid)
 								
 								if (sleep ~= nil) then
 									sleeping = true
 								elseif still then
 									sleeping = true
-									updatedir(uid,feardir)
+									if((horiz == nil) and (vert == nil)) or ((horiz ~= nil) and (vert == nil) and ((feardir == 0) or (feardir == 2))) or ((horiz == nil) and (vert ~= nil) and ((feardir == 1) or (feardir == 3))) then
+										updatedir(uid,feardir)
+									end
 								else
-									updatedir(uid,feardir)
+									if((horiz == nil) and (vert == nil)) or ((horiz ~= nil) and (vert == nil) and ((feardir == 0) or (feardir == 2))) or ((horiz == nil) and (vert ~= nil) and ((feardir == 1) or (feardir == 3))) then
+										updatedir(uid,feardir)
+									end
 								end
 							else
 								local x = uid % roomsizex
@@ -474,10 +486,15 @@ function movecommand(ox,oy,dir_,playerid_,dir_2,no3d_)
 							local x,y = unit.values[XPOS],unit.values[YPOS]
 							
 							if floating_level(unit.fixed) then
-								updatedir(unit.fixed, leveldir)
+								local unitname = getname(unit)
+								local horiz = hasfeature(unitname,"is","horiz",unit.fixed)
+								local vert = hasfeature(unitname,"is","vert",unit.fixed)
+								if((horiz == nil) and (vert == nil)) or ((horiz ~= nil) and (vert == nil) and ((leveldir == 0) or (leveldir == 2))) or ((horiz == nil) and (vert ~= nil) and ((leveldir == 1) or (leveldir == 3))) then
+									updatedir(unit.fixed, leveldir)
+								end
 								
 								if (isstill_or_locked(unit.fixed,x,y,leveldir) == false) and (issleep(unit.fixed,x,y) == false) then
-									table.insert(moving_units, {unitid = unit.fixed, reason = "shift", state = 0, moves = 1, dir = unit.values[DIR], xpos = x, ypos = y})
+									table.insert(moving_units, {unitid = unit.fixed, reason = "shift", state = 0, moves = 1, dir = leveldir, xpos = x, ypos = y})
 								end
 							end
 						end
@@ -525,6 +542,9 @@ function movecommand(ox,oy,dir_,playerid_,dir_2,no3d_)
 					local dir,name = 4,""
 					local x,y = data.xpos,data.ypos
 					local holder = 0
+					local olderDir = 4
+					local horiz = nil
+					local vert = nil
 					
 					if (data.unitid ~= 2) then
 						unit = mmf.newObject(data.unitid)
@@ -532,6 +552,12 @@ function movecommand(ox,oy,dir_,playerid_,dir_2,no3d_)
 						name = getname(unit)
 						x,y = unit.values[XPOS],unit.values[YPOS]
 						holder = unit.holder or 0
+						horiz = hasfeature(name,"is","horiz",data.unitid)
+						vert = hasfeature(name,"is","vert",data.unitid)
+						if(data.reason ~= "nudgeup") and (data.reason ~= "nudgedown") and (data.reason ~= "nudgeleft") and (data.reason ~= "nudgeright") and (((horiz ~= nil) and (vert == nil)) or ((horiz == nil) and (vert ~= nil))) then
+							olderDir = dir
+							dir = data.dir
+						end
 					else
 						dir = data.dir
 						name = "empty"
@@ -563,6 +589,7 @@ function movecommand(ox,oy,dir_,playerid_,dir_2,no3d_)
 								end
 								
 								if (data.unitid ~= 2) and (unit.flags[DEAD] == false) then
+									
 									updatedir(data.unitid, newdir_)
 									--unit.values[DIR] = dir
 									
@@ -574,7 +601,9 @@ function movecommand(ox,oy,dir_,playerid_,dir_2,no3d_)
 						end
 						
 						if (state == 0) and (data.reason == "shift") and (data.unitid ~= 2) then
-							updatedir(data.unitid, data.dir)
+							if((horiz == nil) and (vert == nil)) or ((horiz ~= nil) and (vert == nil) and ((data.dir == 0) or (data.dir == 2))) or ((horiz == nil) and (vert ~= nil) and ((data.dir == 1) or (data.dir == 3))) then
+								updatedir(data.unitid, data.dir)
+							end
 							dir = data.dir
 						end
 						
@@ -599,7 +628,7 @@ function movecommand(ox,oy,dir_,playerid_,dir_2,no3d_)
 							returnolddir = true
 						end
 						
-						if (featureindex["reverse"] ~= nil) then
+						if (featureindex["reverse"] ~= nil) or (featureindex["reversehoriz"] ~= nil) or (featureindex["reversevert"] ~= nil) then
 							local revdir = reversecheck(data.unitid,dir,x,y)
 							if (revdir ~= dir) then
 								dir = revdir
@@ -711,7 +740,11 @@ function movecommand(ox,oy,dir_,playerid_,dir_2,no3d_)
 										end
 									end
 									
-									table.insert(movelist, {data.unitid,ox,oy,olddir,specials,x,y})
+									if((horiz ~= nil) and (vert == nil) and ((olddir == 1) or (olddir == 3))) or ((horiz == nil) and (vert ~= nil) and ((olddir == 0) or (olddir == 2))) then
+										table.insert(movelist, {data.unitid,ox,oy,olderdir,specials,x,y})
+									else
+										table.insert(movelist, {data.unitid,ox,oy,olddir,specials,x,y})
+									end
 									if (data.unitid == 2) and (data.moves > 1) then
 										data.xpos = x + ox
 										data.ypos = y + oy
@@ -1444,7 +1477,17 @@ function dopush(unitid,ox,oy,dir,pulling_,x_,y_,reason,pusherid)
 		
 		while (finaldone == false) and (HACK_MOVES < 10000) do
 			if (result == 0) then
-				table.insert(movelist, {unitid,ox,oy,dir,specials,x,y})
+				if(unitid ~= 2) then
+					local horiz = hasfeature(name, "is", "horiz", unitid)
+					local vert = hasfeature(name, "is", "vert", unitid)
+					if((horiz ~= nil) and (vert == nil) and ((dir == 1) or (dir == 3))) or ((horiz == nil) and (vert ~= nil) and ((dir == 0) or (dir == 2))) then
+						table.insert(movelist, {unitid,ox,oy,unit.values[DIR],specials,x,y})
+					else
+						table.insert(movelist, {unitid,ox,oy,dir,specials,x,y})
+					end
+				else
+					table.insert(movelist, {unitid,ox,oy,dir,specials,x,y})
+				end
 				--move(unitid,ox,oy,dir,specials)
 				pushsound = true
 				finaldone = true
@@ -1454,7 +1497,15 @@ function dopush(unitid,ox,oy,dir,pulling_,x_,y_,reason,pusherid)
 					for i,obs in ipairs(pullhmlist) do
 						if (obs < -1) or (obs > 1) and (obs ~= pusherid) then
 							if (obs ~= 2) then
-								table.insert(movelist, {obs,ox,oy,dir,pullspecials,x,y})
+								_unit = mmf.newObject(obs)
+								_name = getname(unit)
+								local horiz = hasfeature(_name, "is", "horiz", obs)
+								local vert = hasfeature(_name, "is", "vert", obs)
+								if((horiz ~= nil) and (vert == nil) and ((dir == 1) or (dir == 3))) or ((horiz == nil) and (vert ~= nil) and ((dir == 0) or (dir == 2))) then
+									table.insert(movelist, {obs,ox,oy,_unit.values[DIR],pullspecials,x,y})
+								else
+									table.insert(movelist, {obs,ox,oy,dir,pullspecials,x,y})
+								end
 								pushsound = true
 								--move(obs,ox,oy,dir,specials)
 							end
@@ -1521,6 +1572,15 @@ function dopush(unitid,ox,oy,dir,pulling_,x_,y_,reason,pusherid)
 					local pid = tostring(x - ox + (y - oy) * roomsizex) .. tostring(obs)
 					
 					if (obs ~= 2) and (pushedunits[pid] == nil) then
+						_unit = mmf.newObject(obs)
+						_name = getname(unit)
+						local horiz = hasfeature(_name, "is", "horiz", obs)
+						local vert = hasfeature(_name, "is", "vert", obs)
+						if((horiz ~= nil) and (vert == nil) and ((dir == 1) or (dir == 3))) or ((horiz == nil) and (vert ~= nil) and ((dir == 0) or (dir == 2))) then
+							table.insert(movelist, {obs,ox,oy,_unit.values[DIR],specials,x,y})
+						else
+							table.insert(movelist, {obs,ox,oy,dir,specials,x,y})
+						end
 						table.insert(movelist, {obs,ox,oy,dir,specials,x,y})
 						pushsound = true
 					end
@@ -1780,6 +1840,20 @@ function add_moving_units(rule,newdata,data,been_seen,empty_)
 			
 			if (rule == "chill") and (sleep == nil) then
 				local dir = fixedrandom(0,3)
+				
+				if(hasfeature(name,"is","horiz",unit.fixed) ~= nil) and (hasfeature(name,"is","vert",unit.fixed) == nil) then
+					if(dir == 1) then
+						dir = 0
+					elseif(dir == 3) then
+						dir = 2
+					end
+				elseif(hasfeature(name,"is","horiz",unit.fixed) == nil) and (hasfeature(name,"is","vert",unit.fixed) ~= nil) then
+					if(dir == 0) then
+						dir = 1
+					elseif(dir == 2) then
+						dir = 3
+					end
+				end
 				
 				if (data.unitid ~= 2) then
 					updatedir(v, dir)

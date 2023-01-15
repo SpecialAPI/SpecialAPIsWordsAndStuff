@@ -883,14 +883,14 @@ condlist =
 								end
 							else
 								if (pnot == false) then
-									if ((pname == "right") and (dir == 0)) or ((pname == "up") and (dir == 1)) or ((pname == "left") and (dir == 2)) or ((pname == "down") and (dir == 3)) then
+									if ((pname == "right") and (dir == 0)) or ((pname == "up") and (dir == 1)) or ((pname == "left") and (dir == 2)) or ((pname == "down") and (dir == 3)) or ((pname == "horiz") and ((dir == 0) or (dir == 2))) or ((pname == "vert") and ((dir == 1) or (dir == 3))) then
 										if (alreadyfound[bcode] == nil) then
 											alreadyfound[bcode] = 1
 											allfound = allfound + 1
 										end
 									end
 								else
-									if ((pname == "right") and (dir ~= 0)) or ((pname == "up") and (dir ~= 1)) or ((pname == "left") and (dir ~= 2)) or ((pname == "down") and (dir ~= 3)) then
+									if ((pname == "right") and (dir ~= 0)) or ((pname == "up") and (dir ~= 1)) or ((pname == "left") and (dir ~= 2)) or ((pname == "down") and (dir ~= 3)) or ((pname == "horiz") and ((dir == 1) or (dir == 3))) or ((pname == "vert") and ((dir == 0) or (dir == 2))) then
 										if (alreadyfound[bcode] == nil) then
 											alreadyfound[bcode] = 1
 											allfound = allfound + 1
@@ -2139,25 +2139,6 @@ condlist =
 							alreadyfound[1] = 1
 							allfound = allfound + 1
 						end
-					else
-						local dirids = {"r","u","l","d"}
-						local dirid = dirids[dir + 1]
-						
-						if (surrounds[dirid] ~= nil) then
-							for c,d in ipairs(surrounds[dirid]) do
-								if (pnot == false) then
-									if (d == pname) and (alreadyfound[bcode] == nil) then
-										alreadyfound[bcode] = 1
-										allfound = allfound + 1
-									end
-								else
-									if (d ~= pname) and (alreadyfound[bcode] == nil) then
-										alreadyfound[bcode] = 1
-										allfound = allfound + 1
-									end
-								end
-							end
-						end
 					end
 				end
 			else
@@ -2277,5 +2258,570 @@ condlist =
 			end
 			
 			return (hasyou == true),checkedconds
+		end,
+	seenby = function(params,checkedconds,checkedconds_,cdata)
+			local allfound = 0
+			local alreadyfound = {}
+			local targets = {}
+			
+			local unitid,x,y,dir,conds,surrounds = cdata.unitid,cdata.x,cdata.y,cdata.dir,tostring(cdata.conds),cdata.surrounds
+			local unit = mmf.newObject(unitid)
+			local name = getname(unit)
+			
+			if(hasfeature(name,"is","hide",unitid,x,y,checkedconds) ~= nil) then
+				return false, checkedconds, true
+			end
+			
+			if (checkedconds_ ~= nil) and (checkedconds_[tostring(conds) .. "_s_"] ~= nil) then
+				return false,checkedconds,true
+			end
+			
+			if (#params > 0) and (dir ~= 4) then
+				for tdir = 0,3 do
+					local ndrs = ndirs[tdir+1]
+					local ox = ndrs[1]
+					local oy = ndrs[2]
+				
+					local nx,ny = x,y
+					local tileid = (x + ox) + (y + oy) * roomsizex
+					local solid = 0
+					while (solid == 0) and inbounds(nx,ny,1) do
+						nx = nx + ox
+						ny = ny + oy
+						
+						tileid = nx + ny * roomsizex
+						
+						if inbounds(nx,ny,1) then
+							if (unitmap[tileid] ~= nil) then
+								if (#unitmap[tileid] > 0) then
+									local detected = false
+									
+									for a,b in ipairs(unitmap[tileid]) do
+										local unit = mmf.newObject(b)
+										local name_ = getname(unit)
+										local udir = unit.values[DIR]
+										
+										if (((udir > 1) and (udir - 2 == tdir)) or ((udir < 2) and (udir + 2 == tdir))) then
+											table.insert(targets, {b, name_})
+											detected = true
+										end
+									end
+								end
+							end
+							
+							solid = simplecheck(nx,ny,true,checkedconds)
+						else
+							solid = 1
+						end
+					end
+				end
+				
+				for a,b in ipairs(params) do
+					local pname = b
+					local pnot = false
+					if (string.sub(b, 1, 4) == "not ") then
+						pnot = true
+						pname = string.sub(b, 5)
+					end
+					
+					local bcode = b .. "_" .. tostring(a)
+					
+					if (string.sub(pname, 1, 5) == "group") or (string.sub(pname, 1, 3) == "use") then
+						return false,checkedconds
+					end
+					
+					if (unitid ~= 1) then
+						if ((pname ~= "empty") and (b ~= "level")) or ((b == "level") and (alreadyfound[1] ~= nil)) then
+							for c,d_ in ipairs(targets) do
+								local d = d_[1]
+								
+								if (d ~= unitid) and (alreadyfound[d] == nil) and (d ~= 2) then
+									local name_ = d_[2]
+									
+									if (pnot == false) then
+										if (name_ == pname) and (alreadyfound[bcode] == nil) then
+											alreadyfound[bcode] = 1
+											alreadyfound[d] = 1
+											allfound = allfound + 1
+										end
+									else
+										if (name_ ~= pname) and (alreadyfound[bcode] == nil) and (name_ ~= "text") then
+											alreadyfound[bcode] = 1
+											alreadyfound[d] = 1
+											allfound = allfound + 1
+										end
+									end
+								end
+							end
+						elseif (b == "level") and (alreadyfound[bcode] == nil) and (alreadyfound[1] == nil) then
+							alreadyfound[bcode] = 1
+							alreadyfound[1] = 1
+							allfound = allfound + 1
+						end
+					end
+				end
+			elseif (#params == 0) then
+				print("no parameters given!")
+				return false,checkedconds,true
+			else
+				return false,checkedconds,true
+			end
+			
+			return (allfound == #params),checkedconds,true
+		end,
+	being = function(params,checkedconds,checkedconds_,cdata)
+			local allfound = 0
+			local alreadyfound = {}
+			local name,unitid,x,y,limit = cdata.name,cdata.unitid,cdata.x,cdata.y,cdata.limit
+			
+			if (#params > 0) then
+				for a,b in ipairs(params) do
+					local pname = b
+					local pnot = false
+					if (string.sub(b, 1, 4) == "not ") then
+						pnot = true
+						pname = string.sub(b, 5)
+					end
+					
+					local bcode = b .. "_" .. tostring(a)
+					
+					if (featureindex[name] ~= nil) then
+						for c,d in ipairs(featureindex[name]) do
+							local drule = d[1]
+							local dconds = d[2]
+							
+							if (checkedconds[tostring(dconds)] == nil) then
+								if (pnot == false) then
+									if (drule[1] == name) and (drule[2] == "is") and (drule[3] == b) then
+										checkedconds[tostring(dconds)] = 1
+										
+										if (alreadyfound[bcode] == nil) and testcond(dconds,unitid,x,y,nil,limit,checkedconds) then
+											alreadyfound[bcode] = 1
+											allfound = allfound + 1
+											break
+										end
+									end
+								else
+									if (string.sub(drule[3], 1, 4) ~= "not ") then
+										local obj = unitreference["text_" .. drule[3]]
+										
+										if (obj ~= nil) then
+											local objtype = getactualdata_objlist(obj,"type")
+											
+											if (objtype == 0) then
+												if (drule[1] == name) and (drule[2] == "is") and (drule[3] ~= pname) then
+													checkedconds[tostring(dconds)] = 1
+													
+													if (alreadyfound[bcode] == nil) and testcond(dconds,unitid,x,y,nil,limit,checkedconds) then
+														alreadyfound[bcode] = 1
+														allfound = allfound + 1
+														break
+													end
+												end
+											end
+										end
+									end
+								end
+							end
+						end
+					end
+				end
+			else
+				return false,checkedconds,true
+			end
+			
+			--MF_alert(tostring(cdata.debugname) .. ", " .. tostring(allfound) .. ", " .. tostring(#params))
+			
+			return (allfound == #params),checkedconds,true
+		end,
+	making = function(params,checkedconds,checkedconds_,cdata)
+			local allfound = 0
+			local alreadyfound = {}
+			local name,unitid,x,y,limit = cdata.name,cdata.unitid,cdata.x,cdata.y,cdata.limit
+			
+			if (#params > 0) then
+				for a,b in ipairs(params) do
+					local pname = b
+					local pnot = false
+					if (string.sub(b, 1, 4) == "not ") then
+						pnot = true
+						pname = string.sub(b, 5)
+					end
+					
+					local bcode = b .. "_" .. tostring(a)
+					
+					if (featureindex[name] ~= nil) then
+						for c,d in ipairs(featureindex[name]) do
+							local drule = d[1]
+							local dconds = d[2]
+							
+							if (checkedconds[tostring(dconds)] == nil) then
+								if (pnot == false) then
+									if (drule[1] == name) and (drule[2] == "make") and (drule[3] == b) then
+										checkedconds[tostring(dconds)] = 1
+										
+										if (alreadyfound[bcode] == nil) and testcond(dconds,unitid,x,y,nil,limit,checkedconds) then
+											alreadyfound[bcode] = 1
+											allfound = allfound + 1
+											break
+										end
+									end
+								else
+									if (string.sub(drule[3], 1, 4) ~= "not ") then
+										local obj = unitreference["text_" .. drule[3]]
+										
+										if (obj ~= nil) then
+											local objtype = getactualdata_objlist(obj,"type")
+											
+											if (objtype == 0) then
+												if (drule[1] == name) and (drule[2] == "make") and (drule[3] ~= pname) then
+													checkedconds[tostring(dconds)] = 1
+													
+													if (alreadyfound[bcode] == nil) and testcond(dconds,unitid,x,y,nil,limit,checkedconds) then
+														alreadyfound[bcode] = 1
+														allfound = allfound + 1
+														break
+													end
+												end
+											end
+										end
+									end
+								end
+							end
+						end
+					end
+				end
+			else
+				return false,checkedconds,true
+			end
+			
+			--MF_alert(tostring(cdata.debugname) .. ", " .. tostring(allfound) .. ", " .. tostring(#params))
+			
+			return (allfound == #params),checkedconds,true
+		end,
+	writing = function(params,checkedconds,checkedconds_,cdata)
+			local allfound = 0
+			local alreadyfound = {}
+			local name,unitid,x,y,limit = cdata.name,cdata.unitid,cdata.x,cdata.y,cdata.limit
+			
+			if (#params > 0) then
+				for a,b in ipairs(params) do
+					local pname = b
+					local pnot = false
+					if (string.sub(b, 1, 4) == "not ") then
+						pnot = true
+						pname = string.sub(b, 5)
+					end
+					
+					local bcode = b .. "_" .. tostring(a)
+					
+					if (featureindex[name] ~= nil) then
+						for c,d in ipairs(featureindex[name]) do
+							local drule = d[1]
+							local dconds = d[2]
+							
+							if (checkedconds[tostring(dconds)] == nil) then
+								if (pnot == false) then
+									if (drule[1] == name) and (drule[2] == "write") and (drule[3] == b) then
+										checkedconds[tostring(dconds)] = 1
+										
+										if (alreadyfound[bcode] == nil) and testcond(dconds,unitid,x,y,nil,limit,checkedconds) then
+											alreadyfound[bcode] = 1
+											allfound = allfound + 1
+											break
+										end
+									end
+								else
+									if (string.sub(drule[3], 1, 4) ~= "not ") then
+										local obj = unitreference["text_" .. drule[3]]
+										
+										if (obj ~= nil) then
+											local objtype = getactualdata_objlist(obj,"type")
+											
+											if (objtype == 0) or (objtype == 2) then
+												if (drule[1] == name) and (drule[2] == "write") and (drule[3] ~= pname) then
+													checkedconds[tostring(dconds)] = 1
+													
+													if (alreadyfound[bcode] == nil) and testcond(dconds,unitid,x,y,nil,limit,checkedconds) then
+														alreadyfound[bcode] = 1
+														allfound = allfound + 1
+														break
+													end
+												end
+											end
+										end
+									end
+								end
+							end
+						end
+					end
+				end
+			else
+				return false,checkedconds,true
+			end
+			
+			--MF_alert(tostring(cdata.debugname) .. ", " .. tostring(allfound) .. ", " .. tostring(#params))
+			
+			return (allfound == #params),checkedconds,true
+		end,
+	eating = function(params,checkedconds,checkedconds_,cdata)
+			local allfound = 0
+			local alreadyfound = {}
+			local name,unitid,x,y,limit = cdata.name,cdata.unitid,cdata.x,cdata.y,cdata.limit
+			
+			if (#params > 0) then
+				for a,b in ipairs(params) do
+					local pname = b
+					local pnot = false
+					if (string.sub(b, 1, 4) == "not ") then
+						pnot = true
+						pname = string.sub(b, 5)
+					end
+					
+					local bcode = b .. "_" .. tostring(a)
+					
+					if (featureindex[name] ~= nil) then
+						for c,d in ipairs(featureindex[name]) do
+							local drule = d[1]
+							local dconds = d[2]
+							
+							if (checkedconds[tostring(dconds)] == nil) then
+								if (pnot == false) then
+									if (drule[1] == name) and (drule[2] == "eat") and (drule[3] == b) then
+										checkedconds[tostring(dconds)] = 1
+										
+										if (alreadyfound[bcode] == nil) and testcond(dconds,unitid,x,y,nil,limit,checkedconds) then
+											alreadyfound[bcode] = 1
+											allfound = allfound + 1
+											break
+										end
+									end
+								else
+									if (string.sub(drule[3], 1, 4) ~= "not ") then
+										local obj = unitreference["text_" .. drule[3]]
+										
+										if (obj ~= nil) then
+											local objtype = getactualdata_objlist(obj,"type")
+											
+											if (objtype == 0) then
+												if (drule[1] == name) and (drule[2] == "eat") and (drule[3] ~= pname) then
+													checkedconds[tostring(dconds)] = 1
+													
+													if (alreadyfound[bcode] == nil) and testcond(dconds,unitid,x,y,nil,limit,checkedconds) then
+														alreadyfound[bcode] = 1
+														allfound = allfound + 1
+														break
+													end
+												end
+											end
+										end
+									end
+								end
+							end
+						end
+					end
+				end
+			else
+				return false,checkedconds,true
+			end
+			
+			--MF_alert(tostring(cdata.debugname) .. ", " .. tostring(allfound) .. ", " .. tostring(#params))
+			
+			return (allfound == #params),checkedconds,true
+		end,
+	mimicing = function(params,checkedconds,checkedconds_,cdata)
+			local allfound = 0
+			local alreadyfound = {}
+			local name,unitid,x,y,limit = cdata.name,cdata.unitid,cdata.x,cdata.y,cdata.limit
+			
+			if (#params > 0) then
+				for a,b in ipairs(params) do
+					local pname = b
+					local pnot = false
+					if (string.sub(b, 1, 4) == "not ") then
+						pnot = true
+						pname = string.sub(b, 5)
+					end
+					
+					local bcode = b .. "_" .. tostring(a)
+					
+					if (featureindex[name] ~= nil) then
+						for c,d in ipairs(featureindex[name]) do
+							local drule = d[1]
+							local dconds = d[2]
+							
+							if (checkedconds[tostring(dconds)] == nil) then
+								if (pnot == false) then
+									if (drule[1] == name) and (drule[2] == "mimic") and (drule[3] == b) then
+										checkedconds[tostring(dconds)] = 1
+										
+										if (alreadyfound[bcode] == nil) and testcond(dconds,unitid,x,y,nil,limit,checkedconds) then
+											alreadyfound[bcode] = 1
+											allfound = allfound + 1
+											break
+										end
+									end
+								else
+									if (string.sub(drule[3], 1, 4) ~= "not ") then
+										local obj = unitreference["text_" .. drule[3]]
+										
+										if (obj ~= nil) then
+											local objtype = getactualdata_objlist(obj,"type")
+											
+											if (objtype == 0) then
+												if (drule[1] == name) and (drule[2] == "mimic") and (drule[3] ~= pname) then
+													checkedconds[tostring(dconds)] = 1
+													
+													if (alreadyfound[bcode] == nil) and testcond(dconds,unitid,x,y,nil,limit,checkedconds) then
+														alreadyfound[bcode] = 1
+														allfound = allfound + 1
+														break
+													end
+												end
+											end
+										end
+									end
+								end
+							end
+						end
+					end
+				end
+			else
+				return false,checkedconds,true
+			end
+			
+			--MF_alert(tostring(cdata.debugname) .. ", " .. tostring(allfound) .. ", " .. tostring(#params))
+			
+			return (allfound == #params),checkedconds,true
+		end,
+	fearing = function(params,checkedconds,checkedconds_,cdata)
+			local allfound = 0
+			local alreadyfound = {}
+			local name,unitid,x,y,limit = cdata.name,cdata.unitid,cdata.x,cdata.y,cdata.limit
+			
+			if (#params > 0) then
+				for a,b in ipairs(params) do
+					local pname = b
+					local pnot = false
+					if (string.sub(b, 1, 4) == "not ") then
+						pnot = true
+						pname = string.sub(b, 5)
+					end
+					
+					local bcode = b .. "_" .. tostring(a)
+					
+					if (featureindex[name] ~= nil) then
+						for c,d in ipairs(featureindex[name]) do
+							local drule = d[1]
+							local dconds = d[2]
+							
+							if (checkedconds[tostring(dconds)] == nil) then
+								if (pnot == false) then
+									if (drule[1] == name) and (drule[2] == "fear") and (drule[3] == b) then
+										checkedconds[tostring(dconds)] = 1
+										
+										if (alreadyfound[bcode] == nil) and testcond(dconds,unitid,x,y,nil,limit,checkedconds) then
+											alreadyfound[bcode] = 1
+											allfound = allfound + 1
+											break
+										end
+									end
+								else
+									if (string.sub(drule[3], 1, 4) ~= "not ") then
+										local obj = unitreference["text_" .. drule[3]]
+										
+										if (obj ~= nil) then
+											local objtype = getactualdata_objlist(obj,"type")
+											
+											if (objtype == 0) then
+												if (drule[1] == name) and (drule[2] == "fear") and (drule[3] ~= pname) then
+													checkedconds[tostring(dconds)] = 1
+													
+													if (alreadyfound[bcode] == nil) and testcond(dconds,unitid,x,y,nil,limit,checkedconds) then
+														alreadyfound[bcode] = 1
+														allfound = allfound + 1
+														break
+													end
+												end
+											end
+										end
+									end
+								end
+							end
+						end
+					end
+				end
+			else
+				return false,checkedconds,true
+			end
+			
+			--MF_alert(tostring(cdata.debugname) .. ", " .. tostring(allfound) .. ", " .. tostring(#params))
+			
+			return (allfound == #params),checkedconds,true
+		end,
+	followin = function(params,checkedconds,checkedconds_,cdata)
+			local allfound = 0
+			local alreadyfound = {}
+			local name,unitid,x,y,limit = cdata.name,cdata.unitid,cdata.x,cdata.y,cdata.limit
+			
+			if (#params > 0) then
+				for a,b in ipairs(params) do
+					local pname = b
+					local pnot = false
+					if (string.sub(b, 1, 4) == "not ") then
+						pnot = true
+						pname = string.sub(b, 5)
+					end
+					
+					local bcode = b .. "_" .. tostring(a)
+					
+					if (featureindex[name] ~= nil) then
+						for c,d in ipairs(featureindex[name]) do
+							local drule = d[1]
+							local dconds = d[2]
+							
+							if (checkedconds[tostring(dconds)] == nil) then
+								if (pnot == false) then
+									if (drule[1] == name) and (drule[2] == "follow") and (drule[3] == b) then
+										checkedconds[tostring(dconds)] = 1
+										
+										if (alreadyfound[bcode] == nil) and testcond(dconds,unitid,x,y,nil,limit,checkedconds) then
+											alreadyfound[bcode] = 1
+											allfound = allfound + 1
+											break
+										end
+									end
+								else
+									if (string.sub(drule[3], 1, 4) ~= "not ") then
+										local obj = unitreference["text_" .. drule[3]]
+										
+										if (obj ~= nil) then
+											local objtype = getactualdata_objlist(obj,"type")
+											
+											if (objtype == 0) then
+												if (drule[1] == name) and (drule[2] == "follow") and (drule[3] ~= pname) then
+													checkedconds[tostring(dconds)] = 1
+													
+													if (alreadyfound[bcode] == nil) and testcond(dconds,unitid,x,y,nil,limit,checkedconds) then
+														alreadyfound[bcode] = 1
+														allfound = allfound + 1
+														break
+													end
+												end
+											end
+										end
+									end
+								end
+							end
+						end
+					end
+				end
+			else
+				return false,checkedconds,true
+			end
+			
+			--MF_alert(tostring(cdata.debugname) .. ", " .. tostring(allfound) .. ", " .. tostring(#params))
+			
+			return (allfound == #params),checkedconds,true
 		end,
 }
