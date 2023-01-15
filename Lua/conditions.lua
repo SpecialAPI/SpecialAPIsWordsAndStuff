@@ -2085,7 +2085,7 @@ condlist =
 			
 			local unitid,x,y,dir,extras,surrounds,conds = cdata.unitid,cdata.x,cdata.y,cdata.dir,cdata.extras,cdata.surrounds,tostring(cdata.conds)
 			
-			if (#params > 0) and (dir ~= 4) then
+			if (#params > 0) then
 				for a,b in ipairs(params) do
 					local pname = b
 					local pnot = false
@@ -2265,8 +2265,15 @@ condlist =
 			local targets = {}
 			
 			local unitid,x,y,dir,conds,surrounds = cdata.unitid,cdata.x,cdata.y,cdata.dir,tostring(cdata.conds),cdata.surrounds
-			local unit = mmf.newObject(unitid)
-			local name = getname(unit)
+			local name = ""
+			if(unitid ~= 2) and (unitid ~= 1) then
+				local unit = mmf.newObject(unitid)
+				name = getname(unit)
+			elseif(unitid == 2) then
+				name = "empty"
+			elseif(unitid == 1) then
+				name = "level"
+			end
 			
 			if(hasfeature(name,"is","hide",unitid,x,y,checkedconds) ~= nil) then
 				return false, checkedconds, true
@@ -2276,7 +2283,7 @@ condlist =
 				return false,checkedconds,true
 			end
 			
-			if (#params > 0) and (dir ~= 4) then
+			if (#params > 0) then
 				for tdir = 0,3 do
 					local ndrs = ndirs[tdir+1]
 					local ox = ndrs[1]

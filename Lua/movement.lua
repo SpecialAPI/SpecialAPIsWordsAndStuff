@@ -118,18 +118,26 @@ function movecommand(ox,oy,dir_,playerid_,dir_2,no3d_)
 					players,empty = findallfeature(nil,"is","you2")
 					fakeplayers,fakeempty = findallfeature(nil,"is","fakeyou2")
 					
-					if (#players == 0) then
-						players,empty = findallfeature(nil,"is","you")
-					end
-					if(#fakeplayers == 0) then
-						fakeplayers,fakeempty = findallfeature(nil,"is","fakeyou")
-					end
 					for i,v in ipairs(fakeplayers) do
 						table.insert(players, v)
 					end
 					
 					for i,v in ipairs(fakeempty) do
 						table.insert(empty, v)
+					end
+					
+					if (#players == 0) then
+						players,empty = findallfeature(nil,"is","you")
+					end
+					if(#fakeplayers == 0) then
+						fakeplayers,fakeempty = findallfeature(nil,"is","fakeyou")
+						for i,v in ipairs(fakeplayers) do
+							table.insert(players, v)
+						end
+						
+						for i,v in ipairs(fakeempty) do
+							table.insert(empty, v)
+						end
 					end
 				elseif (playerid == 3) then
 					players,empty = findallfeature(nil,"is","you")
