@@ -17,6 +17,39 @@ function movecommand(ox,oy,dir_,playerid_,dir_2,no3d_)
 	
 	local levelmove = {}
 	local levelmove2 = {}
+
+	faceasyou = getunitswitheffect("faceasyou", true)
+	for id,unit in ipairs(faceasyou) do
+		local unitname = getname(unit)
+		if (unit.fixed ~= 1) then
+			for tdir = 0,3 do
+				local ndrs = ndirs[tdir+1]
+				local ox2 = ndrs[1]
+				local oy2 = ndrs[2]
+				
+				local x = unit.values[XPOS]
+				local y = unit.values[YPOS]
+				local tileid = (x + ox2) + (y + oy2) * roomsizex
+				if (unitmap[tileid] ~= nil) then
+					for c,d in ipairs(unitmap[tileid]) do
+						if (d ~= unitid) then
+							local unit2 = mmf.newObject(d)
+							local name_ = getname(unit2)
+							local udir = unit2.values[DIR]
+							
+							if(hasfeature(name_, "is", "you", d)) and (((udir > 1) and (udir - 2 == tdir)) or ((udir < 2) and (udir + 2 == tdir))) then
+								local horiz = hasfeature(unitname,"is","horiz",v)
+								local vert = hasfeature(unitname,"is","vert",v)
+								if((horiz == nil) and (vert == nil)) or ((horiz ~= nil) and (vert == nil) and ((udir == 0) or (udir == 2))) or ((horiz == nil) and (vert ~= nil) and ((udir == 1) or (udir == 3))) then
+									updatedir(unit.fixed,udir)
+								end
+							end
+						end
+					end
+				end
+			end
+		end
+	end
 	
 	if (playerid == 1) then
 		levelmove = findfeature("level","is","you")
@@ -198,14 +231,14 @@ function movecommand(ox,oy,dir_,playerid_,dir_2,no3d_)
 							sleeping = true
 							
 							if (fdir ~= 4) then
-								if((horiz == nil) and (vert == nil)) or ((horiz ~= nil) and (vert == nil) and ((fdir == 0) or (fdir == 2))) or ((horiz == nil) and (vert ~= nil) and ((fdir == 1) or (fdir == 3))) then
+								if((horiz == nil) and (vert == nil)) or (horiz ~= nil and vert ~= nil) or ((horiz ~= nil) and (vert == nil) and ((fdir == 0) or (fdir == 2))) or ((horiz == nil) and (vert ~= nil) and ((fdir == 1) or (fdir == 3))) then
 									updatedir(v,fdir)
 								end
 							end
 						else
 							
 							if (fdir ~= 4) then
-								if((horiz == nil) and (vert == nil)) or ((horiz ~= nil) and (vert == nil) and ((fdir == 0) or (fdir == 2))) or ((horiz == nil) and (vert ~= nil) and ((fdir == 1) or (fdir == 3))) then
+								if((horiz == nil) and (vert == nil)) or (horiz ~= nil and vert ~= nil) or ((horiz ~= nil) and (vert == nil) and ((fdir == 0) or (fdir == 2))) or ((horiz == nil) and (vert ~= nil) and ((fdir == 1) or (fdir == 3))) then
 									updatedir(v,fdir)
 								end
 							end
@@ -392,11 +425,11 @@ function movecommand(ox,oy,dir_,playerid_,dir_2,no3d_)
 									sleeping = true
 								elseif still then
 									sleeping = true
-									if((horiz == nil) and (vert == nil)) or ((horiz ~= nil) and (vert == nil) and ((feardir == 0) or (feardir == 2))) or ((horiz == nil) and (vert ~= nil) and ((feardir == 1) or (feardir == 3))) then
+									if((horiz == nil) and (vert == nil)) or (horiz ~= nil and vert ~= nil) or ((horiz ~= nil) and (vert == nil) and ((feardir == 0) or (feardir == 2))) or ((horiz == nil) and (vert ~= nil) and ((feardir == 1) or (feardir == 3))) then
 										updatedir(uid,feardir)
 									end
 								else
-									if((horiz == nil) and (vert == nil)) or ((horiz ~= nil) and (vert == nil) and ((feardir == 0) or (feardir == 2))) or ((horiz == nil) and (vert ~= nil) and ((feardir == 1) or (feardir == 3))) then
+									if((horiz == nil) and (vert == nil)) or (horiz ~= nil and vert ~= nil) or ((horiz ~= nil) and (vert == nil) and ((feardir == 0) or (feardir == 2))) or ((horiz == nil) and (vert ~= nil) and ((feardir == 1) or (feardir == 3))) then
 										updatedir(uid,feardir)
 									end
 								end
@@ -497,7 +530,7 @@ function movecommand(ox,oy,dir_,playerid_,dir_2,no3d_)
 								local unitname = getname(unit)
 								local horiz = hasfeature(unitname,"is","horiz",unit.fixed)
 								local vert = hasfeature(unitname,"is","vert",unit.fixed)
-								if((horiz == nil) and (vert == nil)) or ((horiz ~= nil) and (vert == nil) and ((leveldir == 0) or (leveldir == 2))) or ((horiz == nil) and (vert ~= nil) and ((leveldir == 1) or (leveldir == 3))) then
+								if((horiz == nil) and (vert == nil)) or (horiz ~= nil and vert ~= nil) or ((horiz ~= nil) and (vert == nil) and ((leveldir == 0) or (leveldir == 2))) or ((horiz == nil) and (vert ~= nil) and ((leveldir == 1) or (leveldir == 3))) then
 									updatedir(unit.fixed, leveldir)
 								end
 								
@@ -562,7 +595,7 @@ function movecommand(ox,oy,dir_,playerid_,dir_2,no3d_)
 						holder = unit.holder or 0
 						horiz = hasfeature(name,"is","horiz",data.unitid)
 						vert = hasfeature(name,"is","vert",data.unitid)
-						if(data.reason ~= "nudgeup") and (data.reason ~= "nudgedown") and (data.reason ~= "nudgeleft") and (data.reason ~= "nudgeright") and (((horiz ~= nil) and (vert == nil)) or ((horiz == nil) and (vert ~= nil))) then
+						if(data.reason ~= "nudgeup") and (data.reason ~= "nudgedown") and (data.reason ~= "nudgeleft") and (data.reason ~= "nudgeright") and data.reason ~= "move" and data.reason ~= "auto" and (((horiz ~= nil) and (vert == nil)) or ((horiz == nil) and (vert ~= nil))) then
 							olderDir = dir
 							dir = data.dir
 						end
@@ -609,7 +642,7 @@ function movecommand(ox,oy,dir_,playerid_,dir_2,no3d_)
 						end
 						
 						if (state == 0) and (data.reason == "shift") and (data.unitid ~= 2) then
-							if((horiz == nil) and (vert == nil)) or ((horiz ~= nil) and (vert == nil) and ((data.dir == 0) or (data.dir == 2))) or ((horiz == nil) and (vert ~= nil) and ((data.dir == 1) or (data.dir == 3))) then
+							if((horiz == nil) and (vert == nil)) or (horiz ~= nil and vert ~= nil) or ((horiz ~= nil) and (vert == nil) and ((data.dir == 0) or (data.dir == 2))) or ((horiz == nil) and (vert ~= nil) and ((data.dir == 1) or (data.dir == 3))) then
 								updatedir(data.unitid, data.dir)
 							end
 							dir = data.dir

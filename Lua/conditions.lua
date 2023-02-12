@@ -141,7 +141,7 @@ function testcond(conds,unitid,x_,y_,autofail_,limit_,checkedconds_,ignorebroken
 							table.insert(params, 1, b)
 						end
 						
-						if (string.sub(b, 1, 5) == "group") or (string.sub(b, 1, 9) == "not group") or (string.sub(b, 1, 3) == "use") or (string.sub(b, 1, 7) == "not use") then
+						if (string.sub(b, 1, 5) == "group") or (string.sub(b, 1, 9) == "not group") or (string.sub(b, 1, 3) == "use") or (string.sub(b, 1, 7) == "not use") or (string.sub(b, 1, 5) == "throw") or (string.sub(b, 1, 9) == "not throw") then
 							handlegroup = true
 						end
 					end
@@ -157,7 +157,7 @@ function testcond(conds,unitid,x_,y_,autofail_,limit_,checkedconds_,ignorebroken
 							local mem = subgroup_
 							local notnoun = false
 							
-							if (string.sub(b, 1, 5) == "group") or (string.sub(b, 1, 3) == "use") then
+							if (string.sub(b, 1, 5) == "group") or (string.sub(b, 1, 3) == "use") or (string.sub(b, 1, 5) == "throw") then
 								if (mem == nil) then
 									mem = findgroup(b,false,limit,checkedconds)
 								end
@@ -313,7 +313,7 @@ condlist =
 						
 						local bcode = b .. "_" .. tostring(a)
 						
-						if (string.sub(pname, 1, 5) == "group") or (string.sub(pname, 1, 3) == "use") then
+						if (string.sub(pname, 1, 5) == "group") or (string.sub(pname, 1, 3) == "use") or (string.sub(pname, 1, 5) == "throw") then
 							return false,checkedconds
 						end
 						
@@ -482,7 +482,7 @@ condlist =
 					
 					local bcode = b .. "_" .. tostring(a)
 					
-					if (string.sub(pname, 1, 5) == "group") or (string.sub(pname, 1, 3) == "use") then
+					if (string.sub(pname, 1, 5) == "group") or (string.sub(pname, 1, 3) == "use") or (string.sub(pname, 1, 5) == "throw") then
 						return false,checkedconds
 					end
 					
@@ -661,7 +661,7 @@ condlist =
 					
 					local bcode = b .. "_" .. tostring(a)
 					
-					if (string.sub(pname, 1, 5) == "group") or (string.sub(pname, 1, 3) == "use") then
+					if (string.sub(pname, 1, 5) == "group") or (string.sub(pname, 1, 3) == "use") or (string.sub(pname, 1, 5) == "throw") then
 						return false,checkedconds
 					end
 					
@@ -852,7 +852,7 @@ condlist =
 					
 					local bcode = b .. "_" .. tostring(a)
 					
-					if (string.sub(pname, 1, 5) == "group") or (string.sub(pname, 1, 3) == "use") then
+					if (string.sub(pname, 1, 5) == "group") or (string.sub(pname, 1, 3) == "use") or (string.sub(pname, 1, 5) == "throw") then
 						return false,checkedconds
 					end
 					
@@ -1021,7 +1021,7 @@ condlist =
 					
 					local bcode = b .. "_" .. tostring(a)
 					
-					if (string.sub(pname, 1, 5) == "group") or (string.sub(pname, 1, 3) == "use") then
+					if (string.sub(pname, 1, 5) == "group") or (string.sub(pname, 1, 3) == "use") or (string.sub(pname, 1, 5) == "throw") then
 						return false,checkedconds
 					end
 					
@@ -1133,7 +1133,7 @@ condlist =
 					
 					local bcode = b .. "_" .. tostring(a)
 					
-					if (string.sub(pname, 1, 5) == "group") or (string.sub(pname, 1, 3) == "use") then
+					if (string.sub(pname, 1, 5) == "group") or (string.sub(pname, 1, 3) == "use") or (string.sub(pname, 1, 5) == "throw") then
 						return false,checkedconds
 					end
 					
@@ -1236,7 +1236,7 @@ condlist =
 					
 					local bcode = b .. "_" .. tostring(a)
 					
-					if (string.sub(pname, 1, 5) == "group") or (string.sub(pname, 1, 3) == "use") then
+					if (string.sub(pname, 1, 5) == "group") or (string.sub(pname, 1, 3) == "use") or (string.sub(pname, 1, 5) == "throw") then
 						return false,checkedconds
 					end
 					
@@ -1402,7 +1402,7 @@ condlist =
 					
 					local bcode = b .. "_" .. tostring(a)
 					
-					if (string.sub(pname, 1, 5) == "group") or (string.sub(pname, 1, 3) == "use") then
+					if (string.sub(pname, 1, 5) == "group") or (string.sub(pname, 1, 3) == "use") or (string.sub(pname, 1, 5) == "throw") then
 						return false,checkedconds
 					end
 					
@@ -1568,7 +1568,7 @@ condlist =
 					
 					local bcode = b .. "_" .. tostring(a)
 					
-					if (string.sub(pname, 1, 5) == "group") or (string.sub(pname, 1, 3) == "use") then
+					if (string.sub(pname, 1, 5) == "group") or (string.sub(pname, 1, 3) == "use") or (string.sub(pname, 1, 5) == "throw") then
 						return false,checkedconds
 					end
 					
@@ -1734,7 +1734,7 @@ condlist =
 					
 					local bcode = b .. "_" .. tostring(a)
 					
-					if (string.sub(pname, 1, 5) == "group") or (string.sub(pname, 1, 3) == "use") then
+					if (string.sub(pname, 1, 5) == "group") or (string.sub(pname, 1, 3) == "use") or (string.sub(pname, 1, 5) == "throw") then
 						return false,checkedconds
 					end
 					
@@ -1907,7 +1907,7 @@ condlist =
 							
 							if (checkedconds[tostring(dconds)] == nil) then
 								if (pnot == false) then
-									if (drule[1] == name) and (drule[2] == "is") and (drule[3] == b) then
+									if (drule[1] == name) and ((drule[2] == "is") or (drule[2] == "feel")) and (drule[3] == b) then
 										checkedconds[tostring(dconds)] = 1
 										
 										if (alreadyfound[bcode] == nil) and testcond(dconds,unitid,x,y,nil,limit,checkedconds) then
@@ -1924,7 +1924,7 @@ condlist =
 											local objtype = getactualdata_objlist(obj,"type")
 											
 											if (objtype == 2) then
-												if (drule[1] == name) and (drule[2] == "is") and (drule[3] ~= pname) then
+												if (drule[1] == name) and ((drule[2] == "is") or (drule[2] == "feel")) and (drule[3] ~= pname) then
 													checkedconds[tostring(dconds)] = 1
 													
 													if (alreadyfound[bcode] == nil) and testcond(dconds,unitid,x,y,nil,limit,checkedconds) then
@@ -2096,7 +2096,7 @@ condlist =
 					
 					local bcode = b .. "_" .. tostring(a)
 					
-					if (string.sub(pname, 1, 5) == "group") or (string.sub(pname, 1, 3) == "use") then
+					if (string.sub(pname, 1, 5) == "group") or (string.sub(pname, 1, 3) == "use") or (string.sub(pname, 1, 5) == "throw") then
 						return false,checkedconds
 					end
 					
@@ -2333,7 +2333,7 @@ condlist =
 					
 					local bcode = b .. "_" .. tostring(a)
 					
-					if (string.sub(pname, 1, 5) == "group") or (string.sub(pname, 1, 3) == "use") then
+					if (string.sub(pname, 1, 5) == "group") or (string.sub(pname, 1, 3) == "use") or (string.sub(pname, 1, 5) == "throw") then
 						return false,checkedconds
 					end
 					
@@ -2399,7 +2399,7 @@ condlist =
 							
 							if (checkedconds[tostring(dconds)] == nil) then
 								if (pnot == false) then
-									if (drule[1] == name) and (drule[2] == "is") and (drule[3] == b) then
+									if (drule[1] == name) and ((drule[2] == "is") or (drule[2] == "become")) and (drule[3] == b) then
 										checkedconds[tostring(dconds)] = 1
 										
 										if (alreadyfound[bcode] == nil) and testcond(dconds,unitid,x,y,nil,limit,checkedconds) then
@@ -2416,7 +2416,7 @@ condlist =
 											local objtype = getactualdata_objlist(obj,"type")
 											
 											if (objtype == 0) then
-												if (drule[1] == name) and (drule[2] == "is") and (drule[3] ~= pname) then
+												if (drule[1] == name) and ((drule[2] == "is") or (drule[2] == "become")) and (drule[3] ~= pname) then
 													checkedconds[tostring(dconds)] = 1
 													
 													if (alreadyfound[bcode] == nil) and testcond(dconds,unitid,x,y,nil,limit,checkedconds) then
@@ -2831,4 +2831,33 @@ condlist =
 			
 			return (allfound == #params),checkedconds,true
 		end,
+	facedbyyou = function(params,checkedconds,checkedconds_,cdata)
+			
+			local unitid,x,y,dir,extras,surrounds,conds = cdata.unitid,cdata.x,cdata.y,cdata.dir,cdata.extras,cdata.surrounds,tostring(cdata.conds)
+					
+			if (unitid ~= 1) then
+				for tdir = 0,3 do
+					local ndrs = ndirs[tdir+1]
+					local ox = ndrs[1]
+					local oy = ndrs[2]
+					
+					local tileid = (x + ox) + (y + oy) * roomsizex
+					if (unitmap[tileid] ~= nil) then
+						for c,d in ipairs(unitmap[tileid]) do
+							if (d ~= unitid) then
+								local unit = mmf.newObject(d)
+								local name_ = getname(unit)
+								local udir = unit.values[DIR]
+								
+								if(hasfeature(name_, "is", "you", d)) and (((udir > 1) and (udir - 2 == tdir)) or ((udir < 2) and (udir + 2 == tdir))) then
+									return true
+								end
+							end
+						end
+					end
+				end
+			end
+			
+			return false
+		end
 }

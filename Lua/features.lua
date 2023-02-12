@@ -21,7 +21,7 @@ function findfeature(rule1,rule2,rule3)
 			local conds = rules[2]
 			
 			if (conds[1] ~= "never") then
-				if (rule[1] == rule1) and (rule[2] == rule2) then
+				if (rule[1] == rule1) and ((rule[2] == rule2) or ((rule2 == "is") and (rule[2] == "feel"))) then
 					local baserule = {rule[1],rule[2],rule[3]}
 					table.insert(options, {baserule,conds})
 				end
@@ -35,7 +35,7 @@ function findfeature(rule1,rule2,rule3)
 			local conds = rules[2]
 			
 			if (conds[1] ~= "never") then
-				if (rule[3] == rule3) and (rule[2] == rule2) then
+				if (rule[3] == rule3) and ((rule[2] == rule2) or ((rule2 == "is") and (rule[2] == "feel"))) then
 					local baserule = {rule[1],rule[2],rule[3]}
 					table.insert(options, {baserule,conds})
 				end
@@ -70,6 +70,32 @@ function findfeature(rule1,rule2,rule3)
 				end
 			end
 		end
+		if(rule2 == "is") and (featureindex["feel"] ~= nil) then
+			for i,rules in ipairs(featureindex["feel"]) do
+				local usable = false
+				local rule = rules[1]
+				local conds = rules[2]
+
+				if (conds[1] ~= "never") then
+					for a,mat in pairs(objectlist) do
+						if (a == rule[3]) then
+							usable = true
+						end
+					end
+					
+					for a,mat in ipairs(customobjects) do
+						if (mat == rule[3]) then
+							usable = true
+						end
+					end
+					
+					if (rule[2] == "feel") and usable then
+						local baserule = {rule[1],rule[2],rule[3]}
+						table.insert(options, {baserule,conds})
+					end
+				end
+			end
+		end
 	end
 	
 	for i,rules in ipairs(options) do
@@ -84,8 +110,11 @@ function findfeature(rule1,rule2,rule3)
 			local one = words[3]
 			local two = words[2] .. " " .. words[3]
 			local three = words[1] .. " " .. words[2] .. " " .. words[3]
-
-			if (one == rule) or (two == rule) or (three == rule) or ((rule2 == words[2]) and (rule1 == nil) and (rule3 == nil)) then				
+			if(rule2 == "is") and (words[2] == "feel") then
+				two = "is " .. words[3]
+				three = words[1] .. " is " .. words[3]
+			end
+			if (one == rule) or (two == rule) or (three == rule) or (((words[2] == rule2) or ((rule2 == "is") and (words[2] == "feel"))) and (rule1 == nil) and (rule3 == nil)) then
 				table.insert(result, {baserule[1], rules[2]})
 			end
 		end
@@ -156,7 +185,7 @@ function hasfeature(rule1,rule2,rule3,unitid,x,y,checkedconds,ignorebroken_)
 				local conds = rules[2]
 				
 				if (conds[1] ~= "never") then
-					if (rule[1] == rule1) and (rule[2] == rule2) and (rule[3] == rule3) then
+					if (rule[1] == rule1) and ((rule[2] == rule2) or ((rule2 == "is") and (rule[2] == "feel"))) and (rule[3] == rule3) then
 						if testcond(conds,unitid,x,y,nil,nil,checkedconds,ignorebroken) then
 							return true
 						end
@@ -171,7 +200,7 @@ function hasfeature(rule1,rule2,rule3,unitid,x,y,checkedconds,ignorebroken_)
 				local conds = rules[2]
 				
 				if (conds[1] ~= "never") then
-					if (rule[1] == "text") and (rule[2] == rule2) and (rule[3] == rule3) then
+					if (rule[1] == "text") and ((rule[2] == rule2) or ((rule2 == "is") and (rule[2] == "feel"))) and (rule[3] == rule3) then
 						if testcond(conds,unitid,x,y,nil,nil,checkedconds,ignorebroken) then
 							return true
 						end
@@ -188,7 +217,7 @@ function hasfeature(rule1,rule2,rule3,unitid,x,y,checkedconds,ignorebroken_)
 				local conds = rules[2]
 				
 				if (conds[1] ~= "never") then
-					if (rule[1] == rule1) and (rule[2] == rule2) and (rule[3] == rule3) then
+					if (rule[1] == rule1) and ((rule[2] == rule2) or ((rule2 == "is") and (rule[2] == "feel"))) and (rule[3] == rule3) then
 						if testcond(conds,unitid,x,y,nil,nil,checkedconds,ignorebroken) then
 							return true
 						end
@@ -203,7 +232,7 @@ function hasfeature(rule1,rule2,rule3,unitid,x,y,checkedconds,ignorebroken_)
 				local conds = rules[2]
 				
 				if (conds[1] ~= "never") then
-					if (rule[1] == rule1) and (rule[2] == rule2) and (rule[3] == "text") then
+					if (rule[1] == rule1) and ((rule[2] == rule2) or ((rule2 == "is") and (rule[2] == "feel"))) and (rule[3] == "text") then
 						if testcond(conds,unitid,x,y,nil,nil,checkedconds,ignorebroken) then
 							return true
 						end
@@ -213,7 +242,7 @@ function hasfeature(rule1,rule2,rule3,unitid,x,y,checkedconds,ignorebroken_)
 		end
 	end
 	
-	if (featureindex[rule2] ~= nil) and (rule1 ~= nil) and (rule3 == nil) then
+	if ((featureindex[rule2] ~= nil) or ((rule2 == "is") and (featureindex["being"] ~= nil))) and (rule1 ~= nil) and (rule3 == nil) then
 		local usable = false
 		
 		if (featureindex[rule1] ~= nil) then
@@ -229,7 +258,7 @@ function hasfeature(rule1,rule2,rule3,unitid,x,y,checkedconds,ignorebroken_)
 						end
 					end
 					
-					if (rule[1] == rule1) and (rule[2] == rule2) and usable then
+					if (rule[1] == rule1) and ((rule[2] == rule2) or ((rule2 == "is") and (rule[2] == "feel"))) and usable then
 						if testcond(conds,unitid,x,y,nil,nil,checkedconds,ignorebroken) then
 							return true
 						end
@@ -328,7 +357,7 @@ function getunitswitheffect(rule3,nolevels_,ignorethese_,checkedconds)
 			local rule = v[1]
 			local conds = v[2]
 			
-			if (rule[2] == "is") and (conds[1] ~= "never") and (findnoun(rule[1],nlist.brief) == false) then
+			if ((rule[2] == "is") or (rule[2] == "feel")) and (conds[1] ~= "never") and (findnoun(rule[1],nlist.brief) == false) then
 				table.insert(group, {rule[1], conds})
 			end
 		end
@@ -549,7 +578,7 @@ function hasfeature_count(rule1,rule2,rule3,unitid,x,y,checkedconds)
 				local rule = v[1]
 				local conds = v[2]
 				
-				if (rule[1] == rule1) and (rule[2] == rule2) and (rule[3] == rule3) then
+				if (rule[1] == rule1) and ((rule[2] == rule2) or ((rule2 == "is") and (rule[2] == "feel"))) and (rule[3] == rule3) then
 					if testcond(conds,unitid,x,y,nil,nil,checkedconds) then
 						result = result + 1
 					end
@@ -560,7 +589,7 @@ function hasfeature_count(rule1,rule2,rule3,unitid,x,y,checkedconds)
 				local rule = v[1]
 				local conds = v[2]
 				
-				if (rule[1] == rule1) and (rule[2] == rule2) and (rule[3] == rule3) then
+				if (rule[1] == rule1) and ((rule[2] == rule2) or ((rule2 == "is") and (rule[2] == "feel"))) and (rule[3] == rule3) then
 					if testcond(conds,unitid,x,y,nil,nil,checkedconds) then
 						result = result + 1
 					end

@@ -296,6 +296,7 @@ function docode(firstwords)
 					for i=1,variations do
 						local current = finals[i]
 						local isI = false
+						local isYou = false
 						local letterword = ""
 						local stage = 0
 						local prevstage = 0
@@ -374,6 +375,9 @@ function docode(firstwords)
 										if(tilename == "i2") then
 											isI = true
 										end
+										if(tilename == "oyou" or tilename == "we" or tilename == "they") then
+											isYou = true
+										end
 										prevstage = stage
 										stage = 2
 									elseif (tiletype == 3) then
@@ -399,14 +403,21 @@ function docode(firstwords)
 								elseif (stage == 2) then
 									if (wordid ~= #sent) then
 										if (tiletype == 1) and (prevtiletype ~= 4) and ((prevstage ~= 4) or doingcond or (stage3reached == false)) then
-											if(isI == true) and (tilename == "am") then
+											if(isI or isYou) and ((isI and tilename == "am") or (isYou and tilename == "are")) then
 												tilename = "is"
 												stage2reached = true
 												doingcond = false
 												prevstage = stage
 												nocondsafterthis = true
 												stage = 3
-											elseif(isI == true) and (tilename == "is") then
+											elseif(isI or isYou) and (tilename == "have") then
+												tilename = "has"
+												stage2reached = true
+												doingcond = false
+												prevstage = stage
+												nocondsafterthis = true
+												stage = 3
+											elseif((isI or isYou) and ((tilename == "is") or (tilename == "has") or (tilename == "are") or (tilename == "am"))) or (not isI and not isYou and (tilename == "are" or tilename == "am" or tilename == "have")) then
 												prevstage = stage
 												stage = -1
 												stop = true
@@ -423,6 +434,7 @@ function docode(firstwords)
 											stage = 3
 										elseif (tiletype == 6) and (prevtiletype ~= 4) then
 											isI = false
+											isYou = false
 											prevstage = stage
 											stage = 4
 										elseif (tiletype ~= 4) then
@@ -628,6 +640,7 @@ function docode(firstwords)
 						
 						local allowedwords = {0}
 						local allowedwords_extra = {}
+						local disallowedwords_extra = {}
 						
 						local testing = ""
 						
@@ -704,6 +717,15 @@ function docode(firstwords)
 										end
 									end
 									
+									if(allowed == true) then
+										for a,b in ipairs(disallowedwords_extra) do
+											if (wname == b) or ((b == "groupx") and (string.sub(wname, 1, 5) == "group")) or ((b == "usex") and (string.sub(wname, 1, 3) == "use")) or (b == "throwx" and string.sub(wname, 1, 5) == "throw") then
+												allowed = false
+												break
+											end
+										end
+									end
+									
 									if allowed then
 										table.insert(group, {prefix .. wname, wtype, wid})
 									else
@@ -717,6 +739,13 @@ function docode(firstwords)
 									if (index < #sentence) then
 										allowedwords = {0}
 										allowedwords_extra = {}
+										disallowedwords_extra = {}
+										
+										--if(wname == "become") then
+											--table.insert(disallowedwords_extra, "groupx")
+											--table.insert(disallowedwords_extra, "usex")
+											--table.insert(disallowed)
+										--end
 										
 										local realname = unitreference["text_" .. wname]
 										local cargtype = false
@@ -1016,7 +1045,7 @@ function addoption(option,conds_,ids,visible,notrule,tags_)
 		
 		local groupcond = false
 		
-		if (string.sub(target, 1, 5) == "group") or (string.sub(effect, 1, 5) == "group") or (string.sub(target, 1, 9) == "not group") or (string.sub(effect, 1, 9) == "not group") or (string.sub(target, 1, 3) == "use") or (string.sub(effect, 1, 3) == "use") or (string.sub(target, 1, 7) == "not use") or (string.sub(effect, 1, 7) == "not use") then
+		if (string.sub(target, 1, 5) == "group") or (string.sub(effect, 1, 5) == "group") or (string.sub(target, 1, 9) == "not group") or (string.sub(effect, 1, 9) == "not group") or (string.sub(target, 1, 3) == "use") or (string.sub(effect, 1, 3) == "use") or (string.sub(target, 1, 7) == "not use") or (string.sub(effect, 1, 7) == "not use") or (string.sub(target, 1, 5) == "throw") or (string.sub(effect, 1, 5) == "throw") or (string.sub(target, 1, 9) == "not throw") or (string.sub(effect, 1, 9) == "not throw") then
 			groupcond = true
 		end
 		
@@ -1081,7 +1110,7 @@ function addoption(option,conds_,ids,visible,notrule,tags_)
 								table.insert(newconds, "text")
 							end
 							
-							if (string.sub(b, 1, 5) == "group") or (string.sub(b, 1, 9) == "not group") or (string.sub(b, 1, 3) == "use") or (string.sub(b, 1, 7) == "not use") then
+							if (string.sub(b, 1, 5) == "group") or (string.sub(b, 1, 9) == "not group") or (string.sub(b, 1, 3) == "use") or (string.sub(b, 1, 7) == "not use") or (string.sub(b, 1, 5) == "throw") or (string.sub(b, 1, 9) == "not throw") then
 								groupcond = true
 							end
 						end
@@ -1099,7 +1128,7 @@ function addoption(option,conds_,ids,visible,notrule,tags_)
 		local targetnot = string.sub(target, 1, 4)
 		local targetnot_ = string.sub(target, 5)
 		
-		if (targetnot == "not ") and (objectlist[targetnot_] ~= nil) and (string.sub(targetnot_, 1, 5) ~= "group") and (string.sub(effect, 1, 5) ~= "group") and (string.sub(effect, 1, 9) ~= "not group") or (((string.sub(effect, 1, 5) == "group") or (string.sub(effect, 1, 9) == "not group")) and (targetnot_ == "all")) and (string.sub(targetnot_, 1, 3) ~= "use") and (string.sub(effect, 1, 3) ~= "use") and (string.sub(effect, 1, 7) ~= "not use") or (((string.sub(effect, 1, 3) == "use") or (string.sub(effect, 1, 7) == "not use")) and (targetnot_ == "all")) then
+		if (targetnot == "not ") and (objectlist[targetnot_] ~= nil) and (string.sub(targetnot_, 1, 5) ~= "group") and (string.sub(effect, 1, 5) ~= "group") and (string.sub(effect, 1, 9) ~= "not group") and (string.sub(targetnot_, 1, 3) ~= "use") and (string.sub(effect, 1, 3) ~= "use") and (string.sub(effect, 1, 7) ~= "not use") and (string.sub(targetnot_, 1, 5) ~= "throw") and (string.sub(effect, 1, 5) ~= "throw") and (string.sub(effect, 1, 9) ~= "not throw") or (((string.sub(effect, 1, 5) == "group") or (string.sub(effect, 1, 9) == "not group")) and (targetnot_ == "all")) and (string.sub(targetnot_, 1, 3) ~= "use") and (string.sub(effect, 1, 3) ~= "use") and (string.sub(effect, 1, 7) ~= "not use") or (string.sub(effect, 1, 3) == "use") or (string.sub(effect, 1, 7) == "not use") and (string.sub(targetnot_, 1, 5) ~= "throw") and (string.sub(effect, 1, 5) ~= "throw") and (string.sub(effect, 1, 9) ~= "not throw") or (((string.sub(effect, 1, 5) == "throw") or (string.sub(effect, 1, 9) == "not throw")) and (targetnot_ == "all")) then
 			if (targetnot_ ~= "all") then
 				for i,mat in pairs(objectlist) do
 					if (i ~= targetnot_) and (findnoun(i) == false) then
@@ -1545,7 +1574,7 @@ function postrules(alreadyrun_)
 						local targetconds = rules[2]
 						local object = targetrule[3]
 						
-						if (targetrule[1] == target) and (((targetrule[2] == "is") and (target ~= object)) or ((targetrule[2] == "write") and (string.sub(object, 1, 4) ~= "not "))) and ((getmat(object) ~= nil) or (object == "revert") or ((targetrule[2] == "write") and (string.sub(object, 1, 4) ~= "not "))) and (string.sub(object, 1, 5) ~= "group") then
+						if (targetrule[1] == target) and (((targetrule[2] == "is") and (target ~= object)) or ((targetrule[2] == "write") and (string.sub(object, 1, 4) ~= "not "))) and ((getmat(object) ~= nil) or (object == "revert") or ((targetrule[2] == "write") and (string.sub(object, 1, 4) ~= "not "))) and (string.sub(object, 1, 5) ~= "group") and (string.sub(object, 1, 5) ~= "use") and (string.sub(object, 1, 5) ~= "throw") then
 							if (#newconds > 0) then
 								if (newconds[1] == "never") then
 									targetconds = {}
@@ -1610,22 +1639,22 @@ function grouprules()
 		local groupname1 = ""
 		local groupname2 = ""
 		
-		if (string.sub(rule[1], 1, 5) == "group") or (string.sub(rule[1], 1, 3) == "use") then
+		if (string.sub(rule[1], 1, 5) == "group") or (string.sub(rule[1], 1, 3) == "use") or (string.sub(rule[1], 1, 5) == "throw") then
 			type_groupx = true
 			groupname1 = rule[1]
-		elseif (string.sub(rule[1], 1, 9) == "not group") or (string.sub(rule[1], 1, 7) == "not use") then
+		elseif (string.sub(rule[1], 1, 9) == "not group") or (string.sub(rule[1], 1, 7) == "not use") or (string.sub(rule[1], 1, 9) == "not throw") then
 			type_notgroupx = true
 			groupname1 = string.sub(rule[1], 5)
 		end
 		
-		if (string.sub(rule[3], 1, 5) == "group") or (string.sub(rule[3], 1, 3) == "use") then
+		if (string.sub(rule[3], 1, 5) == "group") or (string.sub(rule[3], 1, 3) == "use") or (string.sub(rule[3], 1, 5) == "throw") then
 			type_xgroup = true
 			groupname2 = rule[3]
 			
 			if (rule[2] == "is") then
 				type_isgroup = true
 			end
-		elseif (string.sub(rule[3], 1, 9) == "not group") or (string.sub(rule[3], 1, 7) == "not use") then
+		elseif (string.sub(rule[3], 1, 9) == "not group") or (string.sub(rule[3], 1, 7) == "not use") or (string.sub(rule[3], 1, 9) == "not throw") then
 			type_xnotgroup = true
 			groupname2 = string.sub(rule[3], 5)
 			
@@ -1638,7 +1667,7 @@ function grouprules()
 			for a,cond in ipairs(conds) do
 				local params = cond[2] or {}
 				for c,param in ipairs(params) do
-					if (string.sub(param, 1, 5) == "group") or (string.sub(param, 1, 9) == "not group") or (string.sub(param, 1, 3) == "use") or (string.sub(param, 1, 7) == "not use") then
+					if (string.sub(param, 1, 5) == "group") or (string.sub(param, 1, 9) == "not group") or (string.sub(param, 1, 3) == "use") or (string.sub(param, 1, 7) == "not use") or (string.sub(param, 1, 5) == "throw") or (string.sub(param, 1, 9) == "not throw") then
 						type_recursive = true
 						break
 					end
@@ -1926,6 +1955,7 @@ function grouprules()
 		local rule = v[1]
 		
 		local isuse = (string.sub(rule[3], 1, 3) == "use")
+		local isthrow = (string.sub(rule[3], 1, 5) == "throw")
 		local conds = v[2]
 		local ids = v[3]
 		local tags = v[4]
@@ -1990,6 +2020,8 @@ function grouprules()
 				
 				table.insert(memberships[rule[3]], {name,fconds})
 				
+				table.insert(combined, {{name, "is", "faceasyou"}, {{"idle"}, {"facedbyyou"}}, {}, {}})
+
 				for a,b_ in ipairs(groupx) do
 					local b = b_[1]
 					recursion = b_[2] or recursion
@@ -2009,6 +2041,9 @@ function grouprules()
 						newconds = copyconds(newconds,gconds)
 						if(isuse == true) then
 							newconds = copyconds(newconds, {{"idle"}, {"onyou"}})
+						end
+						if(isthrow == true) then
+							newconds = copyconds(newconds, {{"idle"}, {"facedbyyou"}})
 						end
 						
 						if (#prevents == 0) then
@@ -2035,6 +2070,7 @@ function grouprules()
 		local gn1 = rule[1]
 		local gn2 = rule[3]
 		local isuse = (string.sub(gn2, 1, 3) == "use")
+		local isthrow = (string.sub(gn2, 1, 3) == "throw")
 		
 		local never = false
 		
@@ -2125,6 +2161,9 @@ function grouprules()
 					if(isuse == true) and (notrule == false) then
 						newconds = copyconds(newconds, {{"idle"}, {"onyou"}})
 					end
+					if(isthrow == true) and (notrule == false) then
+						newconds = copyconds(newconds, {{"idle"}, {"facedbyyou"}})
+					end
 					
 					local newids = concatenate(ids)
 					local newtags = concatenate(tags)
@@ -2190,7 +2229,7 @@ function grouprules()
 		local ids = v[3]
 		local tags = v[4]
 		
-		if (string.sub(rule[1], 1, 5) ~= "group") and (string.sub(rule[1], 1, 9) ~= "not group") and (string.sub(rule[1], 1, 3) ~= "use") and (string.sub(rule[1], 1, 7) ~= "not use") and (rule[2] ~= "is") then
+		if (string.sub(rule[1], 1, 5) ~= "group") and (string.sub(rule[1], 1, 9) ~= "not group") and (string.sub(rule[1], 1, 3) ~= "use") and (string.sub(rule[1], 1, 7) ~= "not use") and (string.sub(rule[1], 1, 5) ~= "throw") and (string.sub(rule[1], 1, 9) ~= "not throw") and (rule[2] ~= "is") then
 			local team2 = {}
 			
 			if (memberships[rule[3]] ~= nil) then
@@ -2226,7 +2265,7 @@ function grouprules()
 			local ids = v[3]
 			local tags = v[4]
 			
-			if (string.sub(rule[1], 1, 5) ~= "group") and (string.sub(rule[1], 1, 9) ~= "not group") and (string.sub(rule[1], 1, 3) ~= "use") and (string.sub(rule[1], 1, 7) ~= "not use") and (rule[2] ~= "is") then
+			if (string.sub(rule[1], 1, 5) ~= "group") and (string.sub(rule[1], 1, 9) ~= "not group") and (string.sub(rule[1], 1, 3) ~= "use") and (string.sub(rule[1], 1, 7) ~= "not use") and (string.sub(rule[1], 1, 5) ~= "throw") and (string.sub(rule[1], 1, 9) ~= "not throw") and (rule[2] ~= "is") then
 				local team2 = {}
 				
 				local gn2 = string.sub(rule[3], 5)
@@ -2523,7 +2562,7 @@ function findwordunits()
 							if (idunit.strings[UNITNAME] == "text_" .. rule[1]) or (rule[1] == "all") then
 								--MF_alert("Matching objects - found")
 								found = true
-							elseif (string.sub(rule[1], 1, 5) == "group") then
+							elseif (string.sub(rule[1], 1, 5) == "group") or (string.sub(rule[1], 1, 3) == "use") or (string.sub(rule[1], 1, 5) == "throw") then
 								--MF_alert("Group - found")
 								found = true
 							elseif (rule[1] ~= checkname) and (string.sub(rule[1], 1, 3) == "not") then
