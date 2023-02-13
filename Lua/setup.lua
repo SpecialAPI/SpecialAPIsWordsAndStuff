@@ -27,6 +27,7 @@ table.insert(editor_objlist_order, "text_horiz")
 table.insert(editor_objlist_order, "text_vert")
 table.insert(editor_objlist_order, "text_reversehoriz")
 table.insert(editor_objlist_order, "text_reversevert")
+table.insert(editor_objlist_order, "text_")
 
 --objects
 table.insert(editor_objlist_order, "blossom")
@@ -472,6 +473,19 @@ editor_objlist["text_reversevert"] =
 	layer = 20,
 	colour = {5, 2},
 	colour_active = {5, 3},
+}
+
+editor_objlist["text_"] = 
+{
+	name = "text_",
+	sprite_in_root = false,
+	unittype = "text",
+	tags = {"text_quality", "text_special"},
+	tiling = -1,
+	type = 2,
+	layer = 20,
+	colour = {0, 1},
+	colour_active = {0, 3},
 }
 
 -- objects
