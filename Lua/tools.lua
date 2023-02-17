@@ -594,13 +594,23 @@ function writerules(parent,name,x_,y_)
 		local text = ""
 		local rule = rules[1]
 		
+		local conds = rules[2]
+		
 		if (#custom == 0) then
-			text = text .. rule[1] .. " "
+			local ov2 = false
+			if(rule[1] == "i2") then
+				ov2 = true
+				text = text .. "i "
+			elseif(rule[1] == "oyou") then
+				ov2 = true
+				text = text .. "you "
+			end
+			if(not ov2) then
+				text = text .. rule[1] .. " "
+			end
 		else
 			text = text .. custom .. " "
 		end
-		
-		local conds = rules[2]
 		local ids = rules[3]
 		local tags = rules[4]
 		
@@ -703,7 +713,24 @@ function writerules(parent,name,x_,y_)
 			end
 			
 			if (#custom == 0) then
-				text = text .. rule[2] .. " " .. target
+				local ov = false
+				if(#conds <= 0) then
+					if(rule[2] == "is") then
+						if(rule[1] == "i2") then
+							ov = true
+							text = text .. "am " .. target
+						elseif(rule[1] == "oyou" or rule[1] == "we" or rule[1] == "they") then
+							ov = true
+							text = text .. "are " .. target
+						end
+					elseif(rule[2] == "has" and rule[1] == "i2" or rule[1] == "oyou" or rule[1] == "we" or rule[1] == "they") then
+						ov = true
+						text = text .. "have " .. target
+					end
+				end
+				if(not ov) then
+					text = text .. rule[2] .. " " .. target
+				end
 			else
 				text = text .. custom .. " " .. custom
 			end
@@ -966,7 +993,7 @@ function inside(name,x,y,dir_,unitid,leveldata_)
 			local verb = baserule[2]
 			local object = baserule[3]
 			
-			if (target == name) and (verb == "has") and (findnoun(object,nlist.short) or (unitreference[object] ~= nil)) then
+			if (target == name) and (verb == "has") and (findnoun(object,nlist.short) or (unitreference[object] ~= nil) or object == "self") then
 				table.insert(ins, {object,conds})
 			end
 		end
@@ -977,7 +1004,7 @@ function inside(name,x,y,dir_,unitid,leveldata_)
 			local object = v[1]
 			local conds = v[2]
 			if testcond(conds,unitid,x,y) then
-				if (object ~= "text") then
+				if (object ~= "text") and object ~= "self" then
 					for a,mat in pairs(objectlist) do
 						if (a == object) and (object ~= "empty") then
 							if (object ~= "all") and (string.sub(object, 1, 5) ~= "group") then
@@ -987,6 +1014,8 @@ function inside(name,x,y,dir_,unitid,leveldata_)
 							end
 						end
 					end
+				elseif(object == "self") then
+					create(name, x, y, dir, nil, nil, nil, nil, leveldata)
 				else
 					create("text_" .. name,x,y,dir,nil,nil,nil,nil,leveldata)
 				end

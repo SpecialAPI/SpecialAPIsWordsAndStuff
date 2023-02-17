@@ -789,6 +789,7 @@ function docode(firstwords)
 										else
 											if (wtype == 1) then
 												allowedwords = argtype
+												allowedwords_extra = argextra
 												
 												stage = 1
 												local target = {prefix .. wname, wtype, wid}

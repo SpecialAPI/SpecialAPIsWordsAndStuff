@@ -8,6 +8,7 @@ table.insert(editor_objlist_order, "text_eating")
 table.insert(editor_objlist_order, "text_mimicing")
 table.insert(editor_objlist_order, "text_fearing")
 table.insert(editor_objlist_order, "text_followin")
+
 table.insert(editor_objlist_order, "text_become")
 table.insert(editor_objlist_order, "text_feel")
 table.insert(editor_objlist_order, "text_no")
@@ -28,6 +29,7 @@ table.insert(editor_objlist_order, "text_vert")
 table.insert(editor_objlist_order, "text_reversehoriz")
 table.insert(editor_objlist_order, "text_reversevert")
 table.insert(editor_objlist_order, "text_")
+table.insert(editor_objlist_order, "text_self")
 
 --objects
 table.insert(editor_objlist_order, "blossom")
@@ -208,6 +210,19 @@ editor_objlist["text_grow"] =
 	layer = 20,
 	colour = {5, 0},
 	colour_active = {5, 2},
+}
+
+editor_objlist["text_self"] = 
+{
+	name = "text_self",
+	sprite_in_root = false,
+	unittype = "text",
+	tags = {"text_quality", "text_special"},
+	tiling = -1,
+	type = 2,
+	layer = 20,
+	colour = {4,0},
+	colour_active = {4, 1},
 }
 
 editor_objlist["text_fakeyou"] = 
@@ -432,7 +447,8 @@ editor_objlist["text_become"] =
 	layer = 20,
 	colour = {0, 1},
 	colour_active = {0, 3},
-	argtype = {0}
+	argtype = {0},
+	argextra = {"self"}
 }
 
 editor_objlist["text_feel"] = 
@@ -492,7 +508,7 @@ editor_objlist["text_"] =
 editor_objlist["blossom"] = 
 {
 	name = "blossom",
-	sprite_in_root = false,
+	sprite_in_root = true,
 	unittype = "object",
 	tags = {"plant","decorative","abstract"},
 	tiling = -1,
@@ -608,8 +624,8 @@ editor_objlist["text_oyou"] =
 	colour_active = {4, 1},
 }
 
-
 editor_objlist[151].argextra = {"right","up","left","down", "horiz", "vert"}
+editor_objlist[161].argextra = {"self"}
 
 table.insert(mod_hook_functions["rule_baserules"],
 	function()

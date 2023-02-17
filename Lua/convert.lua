@@ -12,7 +12,7 @@ function conversion(dolevels_)
 			local name = words[1]
 			local thing = words[3]
 			
-			if (getmat(thing) ~= nil) or (thing == "not " .. name) or (thing == "all") or (unitreference[thing] ~= nil) or ((thing == "text") and (unitreference["text_text"] ~= nil)) or (thing == "revert") or ((operator == "write") and getmat_text("text_" .. name)) then
+			if (getmat(thing) ~= nil) or (thing == "not " .. name) or (thing == "all") or (unitreference[thing] ~= nil) or ((thing == "text") and (unitreference["text_text"] ~= nil)) or (thing == "revert") or thing == "self" or ((operator == "write") and getmat_text("text_" .. name)) then
 				if (featureindex[name] ~= nil) and (alreadydone[name] == nil) then
 					alreadydone[name] = 1
 					
@@ -23,7 +23,7 @@ function conversion(dolevels_)
 						
 						if (verb == "is") or (verb == "become") then
 							if (target == name) and (object ~= "word") and ((object ~= name) or (verb == "become")) then
-								if (object ~= "text") and (object ~= "revert") then
+								if (object ~= "text") and (object ~= "revert") and (object ~= "self" or verb ~= "become") then
 									if (object == "not " .. name) then
 										table.insert(output, {"error", conds, "is"})
 									else
@@ -34,7 +34,9 @@ function conversion(dolevels_)
 										end
 									end
 								elseif (name ~= object) or (verb == "become") then
-									if (object ~= "revert") then
+									if(verb == "become" and object == "self") then
+										table.insert(output, {target, conds, "is"})
+									elseif (object ~= "revert") then
 										table.insert(output, {object, conds, "is"})
 									else
 										table.insert(output, 1, {object, conds, "is"})
@@ -122,128 +124,129 @@ function convert(stuff,mats,dolevels_)
 					local unit = mmf.newObject(unitid)
 					local x,y,dir,id = unit.values[XPOS],unit.values[YPOS],unit.values[DIR],unit.values[ID]
 					local name = getname(unit)
-					
-					local reverting = false
-					local mats2 = {}
-					local newMats = mats
-					if(hasfeature(name, "is", "grow", unitid, x, y, {}, false) == true) then
-						local alreadySaw = {}
-						alreadySaw[name] = 1
-						local currMats = mats
-						local tries = 0
-						local firsttime = true
-						while(true) do
-							newMats = {}
-							local stop = true
-							for a,matdata in pairs(currMats) do
-								local _mat2 = matdata[1]
-								local _conds = matdata[2]
-								local _op = matdata[3]
-								local added = false
-								for i,v in pairs(features) do
-									local words = v[1]
-									
-									local operator = words[2]
-									
-									if (operator == "is") or (operator == "write") or (operator == "become") then
-										local output = {}
-										local uname = words[1]
-										local thing = words[3]
-										if(uname == _mat2) then
-											if(alreadySaw[thing] ~= 1) then
-												if (getmat(thing) ~= nil) or (unitreference[thing] ~= nil) or ((thing == "text") and (unitreference["text_text"] ~= nil)) or ((operator == "write") and getmat_text("text_" .. name)) then
-													if(thing == "text") then
-														thing = "text_" .. uname
+					if(not hasfeature(name, "is", "self", unitid, x, y, {}, false)) then
+						local reverting = false
+						local mats2 = {}
+						local newMats = mats
+						if(hasfeature(name, "is", "grow", unitid, x, y, {}, false) == true) then
+							local alreadySaw = {}
+							alreadySaw[name] = 1
+							local currMats = mats
+							local tries = 0
+							local firsttime = true
+							while(true) do
+								newMats = {}
+								local stop = true
+								for a,matdata in pairs(currMats) do
+									local _mat2 = matdata[1]
+									local _conds = matdata[2]
+									local _op = matdata[3]
+									local added = false
+									for i,v in pairs(features) do
+										local words = v[1]
+										
+										local operator = words[2]
+										
+										if (operator == "is") or (operator == "write") or (operator == "become") then
+											local output = {}
+											local uname = words[1]
+											local thing = words[3]
+											if(uname == _mat2) then
+												if(alreadySaw[thing] ~= 1) then
+													if (getmat(thing) ~= nil) or (unitreference[thing] ~= nil) or ((thing == "text") and (unitreference["text_text"] ~= nil)) or ((operator == "write") and getmat_text("text_" .. name)) then
+														if(thing == "text") then
+															thing = "text_" .. uname
+														end
+														if(thing == "all") then
+															thing = "createall"
+														end
+														table.insert(newMats, {thing, _conds, operator})
+														stop = false
+														if(operator == "is") and (thing ~= "text") then
+															alreadySaw[thing] = 1
+														end
+														added = true
 													end
-													if(thing == "all") then
-														thing = "createall"
-													end
-													table.insert(newMats, {thing, _conds, operator})
-													stop = false
-													if(operator == "is") and (thing ~= "text") then
-														alreadySaw[thing] = 1
-													end
-													added = true
 												end
 											end
 										end
 									end
+									if(added == false) then
+										table.insert(newMats, {_mat2, _conds, _op})
+									end
 								end
-								if(added == false) then
-									table.insert(newMats, {_mat2, _conds, _op})
+								
+								tries = tries + 1
+								if(tries > 100) then
+									destroylevel("infinity")
 								end
-							end
-							
-							tries = tries + 1
-							if(tries > 100) then
-								destroylevel("infinity")
-							end
-							if(#newMats == 0) then
-								newMats = currMats
-							else
-								currMats = newMats
-							end
-							firsttime = false
-							if(stop == true) then
-								break
+								if(#newMats == 0) then
+									newMats = currMats
+								else
+									currMats = newMats
+								end
+								firsttime = false
+								if(stop == true) then
+									break
+								end
 							end
 						end
-					end
 
-					if (unit.flags[CONVERTED] == false) then
-						for a,matdata in pairs(newMats) do
-							local mat2 = matdata[1]
-							local conds = matdata[2]
-							local op = matdata[3]
-							
-							if (op == "write") then
-								mat2 = "text_" .. matdata[1]
-							end
-							
-							if (reverting == false) then
-								local objectfound = false
+						if (unit.flags[CONVERTED] == false) then
+							for a,matdata in pairs(newMats) do
+								local mat2 = matdata[1]
+								local conds = matdata[2]
+								local op = matdata[3]
 								
-								if (unitreference[mat2] ~= nil) and (mat2 ~= "level") then
-									local object = unitreference[mat2]
+								if (op == "write") then
+									mat2 = "text_" .. matdata[1]
+								end
+								
+								if (reverting == false) then
+									local objectfound = false
 									
-									if (tileslist[object]["name"] == mat2) and ((changes[object] == nil) or (changes[object]["name"] == nil)) then
-										objectfound = true
-									elseif (changes[object] ~= nil) then
-										if (changes[object]["name"] ~= nil) and (changes[object]["name"] == mat2) then
+									if (unitreference[mat2] ~= nil) and (mat2 ~= "level") then
+										local object = unitreference[mat2]
+										
+										if (tileslist[object]["name"] == mat2) and ((changes[object] == nil) or (changes[object]["name"] == nil)) then
 											objectfound = true
+										elseif (changes[object] ~= nil) then
+											if (changes[object]["name"] ~= nil) and (changes[object]["name"] == mat2) then
+												objectfound = true
+											end
+										end
+									else
+										objectfound = true
+									end
+									
+									if testcond(conds,unit.fixed) and objectfound then
+										local ingameid = 0
+										if (a == 1) and (donewid == false) then
+											ingameid = id
+										elseif (a > 1) or donewid then
+											ingameid = newid()
+										end
+										
+										if (mat2 == "revert") then
+											if (unit.strings[UNITNAME] ~= unit.originalname) then
+												reverting = true
+											end
+										end
+										
+										if (mat2 ~= "revert") or ((mat2 == "revert") and reverting) then
+											table.insert(mats2, {mat2,ingameid,id})
+											unit.flags[CONVERTED] = true
 										end
 									end
 								else
-									objectfound = true
+									break
 								end
-								
-								if testcond(conds,unit.fixed) and objectfound then
-									local ingameid = 0
-									if (a == 1) and (donewid == false) then
-										ingameid = id
-									elseif (a > 1) or donewid then
-										ingameid = newid()
-									end
-									
-									if (mat2 == "revert") then
-										if (unit.strings[UNITNAME] ~= unit.originalname) then
-											reverting = true
-										end
-									end
-									
-									if (mat2 ~= "revert") or ((mat2 == "revert") and reverting) then
-										table.insert(mats2, {mat2,ingameid,id})
-										unit.flags[CONVERTED] = true
-									end
-								end
-							else
-								break
 							end
 						end
-					end
-					
-					if (#mats2 > 0) then
-						addaction(unit.fixed,{"convert",mats2})
+						
+						if (#mats2 > 0) then
+							addaction(unit.fixed,{"convert",mats2})
+						end
 					end
 				end
 			end
