@@ -7,12 +7,11 @@ function conversion(dolevels_)
 		
 		local operator = words[2]
 		
-		if (operator == "is") or (operator == "write") or (operator == "become") then
+		if (operator == "is") or (operator == "write") or (operator == "become") or (operator == "feel") then
 			local output = {}
 			local name = words[1]
 			local thing = words[3]
-			
-			if (getmat(thing) ~= nil) or (thing == "not " .. name) or (thing == "all") or (unitreference[thing] ~= nil) or ((thing == "text") and (unitreference["text_text"] ~= nil)) or (thing == "revert") or thing == "self" or ((operator == "write") and getmat_text("text_" .. name)) then
+			if (operator ~= "feel" or thing == "revert") and (getmat(thing) ~= nil) or (thing == "not " .. name) or (thing == "all") or (unitreference[thing] ~= nil) or ((thing == "text") and (unitreference["text_text"] ~= nil)) or (thing == "revert") or thing == "self" or ((operator == "write") and getmat_text("text_" .. name)) then
 				if (featureindex[name] ~= nil) and (alreadydone[name] == nil) then
 					alreadydone[name] = 1
 					
@@ -43,6 +42,8 @@ function conversion(dolevels_)
 									end
 								end
 							end
+						elseif(verb == "feel" and thing == "revert") then
+							table.insert(output, 1, {object, conds, "is"})
 						elseif (verb == "write") then
 							if (string.sub(object, 1, 4) ~= "not ") and (target == name) then
 								table.insert(output, {object, conds, "write"})
@@ -320,8 +321,72 @@ function convert(stuff,mats,dolevels_)
 		end
 	end
 	
-	if (mat1 == "level") and dolevels then
-		for i,v in ipairs(mats) do
+	if (mat1 == "level") and dolevels and not hasfeature("level", "is", "self", 1) then
+		local newMats = mats
+		if(hasfeature("level", "is", "grow", 1)) then
+			local alreadySaw = {}
+			alreadySaw[name] = 1
+			local currMats = mats
+			local tries = 0
+			local firsttime = true
+			while(true) do
+				newMats = {}
+				local stop = true
+				for a,matdata in pairs(currMats) do
+					local _mat2 = matdata[1]
+					local _conds = matdata[2]
+					local _op = matdata[3]
+					local added = false
+					for i,v in pairs(features) do
+						local words = v[1]
+						
+						local operator = words[2]
+						
+						if (operator == "is") or (operator == "write") or (operator == "become") then
+							local output = {}
+							local uname = words[1]
+							local thing = words[3]
+							if(uname == _mat2) then
+								if(alreadySaw[thing] ~= 1) then
+									if (getmat(thing) ~= nil) or (unitreference[thing] ~= nil) or ((thing == "text") and (unitreference["text_text"] ~= nil)) or ((operator == "write") and getmat_text("text_" .. name)) then
+										if(thing == "text") then
+											thing = "text_" .. uname
+										end
+										if(thing == "all") then
+											thing = "createall"
+										end
+										table.insert(newMats, {thing, _conds, operator})
+										stop = false
+										if(operator == "is") and (thing ~= "text") then
+											alreadySaw[thing] = 1
+										end
+										added = true
+									end
+								end
+							end
+						end
+					end
+					if(added == false) then
+						table.insert(newMats, {_mat2, _conds, _op})
+					end
+				end
+				
+				tries = tries + 1
+				if(tries > 100) then
+					destroylevel("infinity")
+				end
+				if(#newMats == 0) then
+					newMats = currMats
+				else
+					currMats = newMats
+				end
+				firsttime = false
+				if(stop == true) then
+					break
+				end
+			end
+		end
+		for i,v in ipairs(newMats) do
 			table.insert(levelconversions, v)
 		end
 	end

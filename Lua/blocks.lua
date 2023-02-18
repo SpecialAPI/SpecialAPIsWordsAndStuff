@@ -843,7 +843,7 @@ function moveblock(onlystartblock_)
 							local newunit = mmf.newObject(f)
 							local name = newunit.strings[UNITNAME]
 							
-							if (featureindex["reverse"] ~= nil) then
+							if (featureindex["reverse"] ~= nil or featureindex["reversehoriz"] ~= nil or featureindex["reversevert"] ~= nil) then
 								local turndir = unit.values[DIR]
 								turndir = reversecheck(newunit.fixed,unit.values[DIR],x,y)
 							end
@@ -898,7 +898,7 @@ function fallblock()
 	local ful = #isfall_u
 	local fll = #isfall_l
 	
-	if (featureindex["reverse"] ~= nil) then
+	if (featureindex["reverse"] ~= nil or featureindex["reversehoriz"] ~= nil or featureindex["reversevert"] ~= nil) then
 		for a,unitid in ipairs(isfall) do
 			if (a <= fdl) and (reversecheck(unitid,0) > 0) then
 				table.insert(isfall_u, unitid)
@@ -2699,6 +2699,8 @@ function levelblock()
 								destroylevel()
 							end
 						end
+					elseif (action == "no") then
+						destroylevel()
 					elseif (action == "hot") then
 						local melts = findfeature(nil,"is","melt")
 						
@@ -3162,7 +3164,7 @@ function levelblock()
 					elseif (action == "move") then
 						local dir = mapdir
 						
-						if (featureindex["reverse"] ~= nil) then
+						if (featureindex["reverse"] ~= nil or featureindex["reversehoriz"] ~= nil or featureindex["reversevert"] ~= nil) then
 							dir = reversecheck(1,dir)
 						end
 						
@@ -3190,7 +3192,7 @@ function levelblock()
 					elseif (action == "nudgeright") then
 						local dir = 0
 						
-						if (featureindex["reverse"] ~= nil) then
+						if (featureindex["reverse"] ~= nil or featureindex["reversehoriz"] ~= nil or featureindex["reversevert"] ~= nil) then
 							dir = reversecheck(1,dir)
 						end
 						
@@ -3205,7 +3207,7 @@ function levelblock()
 					elseif (action == "nudgeup") then
 						local dir = 1
 						
-						if (featureindex["reverse"] ~= nil) then
+						if (featureindex["reverse"] ~= nil or featureindex["reversehoriz"] ~= nil or featureindex["reversevert"] ~= nil) then
 							dir = reversecheck(1,dir)
 						end
 						
@@ -3220,7 +3222,7 @@ function levelblock()
 					elseif (action == "nudgeleft") then
 						local dir = 2
 						
-						if (featureindex["reverse"] ~= nil) then
+						if (featureindex["reverse"] ~= nil or featureindex["reversehoriz"] ~= nil or featureindex["reversevert"] ~= nil) then
 							dir = reversecheck(1,dir)
 						end
 						
@@ -3235,7 +3237,7 @@ function levelblock()
 					elseif (action == "nudgedown") then
 						local dir = 3
 						
-						if (featureindex["reverse"] ~= nil) then
+						if (featureindex["reverse"] ~= nil or featureindex["reversehoriz"] ~= nil or featureindex["reversevert"] ~= nil) then
 							dir = reversecheck(1,dir)
 						end
 						
@@ -3254,7 +3256,7 @@ function levelblock()
 						local ox = 0
 						local oy = 1
 						
-						if (featureindex["reverse"] ~= nil) then
+						if (featureindex["reverse"] ~= nil or featureindex["reversehoriz"] ~= nil or featureindex["reversevert"] ~= nil) then
 							dir,ox,oy = reversecheck(1,dir,nil,nil,ox,oy)
 						end
 						
@@ -3270,7 +3272,7 @@ function levelblock()
 						local ox = 1
 						local oy = 0
 						
-						if (featureindex["reverse"] ~= nil) then
+						if (featureindex["reverse"] ~= nil or featureindex["reversehoriz"] ~= nil or featureindex["reversevert"] ~= nil) then
 							dir,ox,oy = reversecheck(1,dir,nil,nil,ox,oy)
 						end
 						
@@ -3286,7 +3288,7 @@ function levelblock()
 						local ox = 0
 						local oy = -1
 						
-						if (featureindex["reverse"] ~= nil) then
+						if (featureindex["reverse"] ~= nil or featureindex["reversehoriz"] ~= nil or featureindex["reversevert"] ~= nil) then
 							dir,ox,oy = reversecheck(1,dir,nil,nil,ox,oy)
 						end
 						
@@ -3302,7 +3304,38 @@ function levelblock()
 						local ox = -1
 						local oy = 0
 						
-						if (featureindex["reverse"] ~= nil) then
+						if (featureindex["reverse"] ~= nil or featureindex["reversehoriz"] ~= nil or featureindex["reversevert"] ~= nil) then
+							dir,ox,oy = reversecheck(1,dir,nil,nil,ox,oy)
+						end
+						
+						if (lstill == false) then
+							addundo({"levelupdate",Xoffset,Yoffset,Xoffset + tilesize * drop * ox,Yoffset + tilesize * drop * oy,dir,dir})
+							MF_scrollroom(tilesize * drop * ox,tilesize * drop * oy)
+							updateundo = true
+						end
+					elseif (action == "falldir") then
+						local droph = 35
+						local dropv = 20
+						local drop = 0
+						local dir = mapdir
+						local ox = 0
+						local oy = 0
+						if(dir == 0) then
+							ox = 1
+							drop = droph
+						elseif(dir == 1) then
+							oy = -1
+							drop = dropv
+						elseif(dir == 2) then
+							ox = -1
+							drop = droph
+						else
+							oy = 1
+							drop = dropv
+						end
+						
+						
+						if (featureindex["reverse"] ~= nil or featureindex["reversehoriz"] ~= nil or featureindex["reversevert"] ~= nil) then
 							dir,ox,oy = reversecheck(1,dir,nil,nil,ox,oy)
 						end
 						

@@ -1322,6 +1322,10 @@ function subrules()
 				local copythese = {}
 				
 				if valid then
+					if(target == "self") then
+						target = object
+					end
+
 					if (getmat(object) ~= nil) and (getmat(target) ~= nil) then
 						if (featureindex[target] ~= nil) then
 							copythese = featureindex[target]

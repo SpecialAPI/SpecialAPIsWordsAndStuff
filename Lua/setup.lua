@@ -626,6 +626,7 @@ editor_objlist["text_oyou"] =
 
 editor_objlist[151].argextra = {"right","up","left","down", "horiz", "vert"}
 editor_objlist[161].argextra = {"self"}
+editor_objlist[244].argextra = {"self"}
 
 table.insert(mod_hook_functions["rule_baserules"],
 	function()

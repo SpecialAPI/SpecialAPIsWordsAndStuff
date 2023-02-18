@@ -52,16 +52,16 @@ function movecommand(ox,oy,dir_,playerid_,dir_2,no3d_)
 	end
 	
 	if (playerid == 1) then
-		levelmove = findfeature("level","is","you")
+		levelmove = findfeature("level","is","you") or findfeature("level","is","fakeyou")
 	elseif (playerid == 2) then
-		levelmove = findfeature("level","is","you2")
+		levelmove = findfeature("level","is","you2") or findfeature("level","is","fakeyou2")
 		
 		if (levelmove == nil) then
-			levelmove = findfeature("level","is","you")
+			levelmove = findfeature("level","is","you") or findfeature("level","is","fakeyou")
 		end
 	elseif (playerid == 3) then
-		levelmove = findfeature("level","is","you") or {}
-		levelmove2 = findfeature("level","is","you2")
+		levelmove = findfeature("level","is","you") or findfeature("level","is","fakeyou") or {}
+		levelmove2 = findfeature("level","is","you2") or findfeature("level","is","fakeyou2")
 		
 		if (#levelmove > 0) and (dir_ ~= nil) then
 			levelmovedir = dir_
